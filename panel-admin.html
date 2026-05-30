@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Admin NexaLovers</title>
+  <meta name="theme-color" content="#120517">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0510;
+      --surface: rgba(18, 8, 29, 0.96);
+      --border: rgba(255, 34, 210, 0.22);
+      --accent: #ff20d0;
+      --muted: #c9b7e7;
+      --text: #f8efff;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: radial-gradient(circle at top left, rgba(255, 34, 210, 0.18), transparent 20%),
+                  linear-gradient(180deg, #09040d 0%, #120717 100%);
+      color: var(--text);
+    }
+    .page {
+      width: min(1280px, 100%);
+      margin: 0 auto;
+      padding: 1.5rem;
+      display: grid;
+      gap: 1.5rem;
+    }
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .title-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    h1 { margin: 0; font-size: clamp(2rem, 3vw, 2.8rem); }
+    p.subtitle { margin: 0; color: var(--muted); max-width: 40rem; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      background: linear-gradient(180deg, rgba(24, 8, 40, 0.98), rgba(10, 3, 20, 0.9));
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 1.4rem;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(255, 34, 210, 0.18), transparent 30%);
+      pointer-events: none;
+    }
+    .card h2 { margin: 0 0 0.75rem; font-size: 0.95rem; letter-spacing: 0.08em; text-transform: uppercase; color: #f7e5ff; }
+    .card span { font-size: clamp(1.8rem, 3vw, 2.8rem); font-weight: 700; letter-spacing: -0.04em; }
+    .panel {
+      border-radius: 28px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+    }
+    .panel h2 { margin-top: 0; }
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 840px;
+    }
+    th, td {
+      padding: 1rem 0.9rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    th {
+      color: var(--muted);
+      font-size: 0.92rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    td {
+      font-size: 0.96rem;
+      color: #e9e0ff;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      background: rgba(255, 34, 210, 0.12);
+      color: #ffd8ff;
+    }
+    .image-cell {
+      display: flex;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .image-cell img {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      object-fit: cover;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .link-chip {
+      display: inline-flex;
+      padding: 0.4rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255, 34, 210, 0.14);
+      color: #f3e8ff;
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+    .whatsapp {
+      color: #a3ffe4;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .footer-note {
+      margin-top: 1rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 860px) {
+      .title-row { flex-direction: column; align-items: flex-start; }
+      table { min-width: 720px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="title-row">
+        <div>
+          <h1>Consola Máster NexaLovers</h1>
+          <p class="subtitle">Panel de administración en tiempo real con JSONBlob público. Visualiza métricas, registros y contactos listos para WhatsApp.</p>
+        </div>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <h2>Total de registros</h2>
+          <span id="metricTotal">0</span>
+        </div>
+        <div class="card">
+          <h2>Contenido digital</h2>
+          <span id="metricDigital">0</span>
+        </div>
+        <div class="card">
+          <h2>Administradores</h2>
+          <span id="metricAdmins">0</span>
+        </div>
+        <div class="card">
+          <h2>Independientes / Agencias</h2>
+          <span id="metricIndie">0</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="panel">
+      <h2>Registros en tiempo real</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Rol</th>
+              <th>Trabajo</th>
+              <th>Personal</th>
+              <th>Promo digital</th>
+              <th>Alias / Foto</th>
+              <th>Fuente de imagen / enlace</th>
+            </tr>
+          </thead>
+          <tbody id="recordsBody">
+            <tr><td colspan="7">Cargando datos...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">Los números de teléfono se limpian automáticamente para abrir WhatsApp. El panel se sincroniza periódicamente con la base de datos pública JSONBlob.</p>
+    </section>
+  </div>
+
+  <script>
+    const CLOUD_DATA_URL = 'https://jsonblob.com/api/jsonBlob/019e7562-0d9c-7482-b02a-e1b6be9854bf';
+
+    function sanitizePhone(value) {
+      if (!value) return '';
+      const cleaned = value.replace(/[^\d+]/g, '').replace(/^\+?0+/, '');
+      return cleaned.startsWith('52') || cleaned.startsWith('+52') ? cleaned.replace(/^\+/, '') : cleaned;
+    }
+
+    function whatsappLink(phone) {
+      const cleaned = sanitizePhone(phone);
+      if (!cleaned) return null;
+      return `https://wa.me/${encodeURIComponent(cleaned)}`;
+    }
+
+    function renderRecord(record) {
+      const nombre = record.nombre || '-';
+      const rol = record.rol || '-';
+      const trabajo = record.telefonoTrabajo || '-';
+      const personal = record.telefonoPersonal || '-';
+      const promo = record.promoDigital ? 'Sí' : 'No';
+      const alias = record.alias || '-';
+      const foto = record.fotoPerfil || null;
+
+      const trabajoLink = whatsappLink(trabajo);
+      const personalLink = whatsappLink(personal);
+
+      const fotoCell = foto ? `<a class="link-chip" href="${foto}" target="_blank" rel="noopener">Abrir enlace</a>` : '-';
+      const aliasCell = alias !== '-' ? alias : '-';
+
+      return `
+        <tr>
+          <td>${nombre}</td>
+          <td><span class="status-pill">${rol}</span></td>
+          <td>${trabajoLink ? `<a class="whatsapp" href="${trabajoLink}" target="_blank" rel="noopener">${trabajo}</a>` : trabajo}</td>
+          <td>${personalLink ? `<a class="whatsapp" href="${personalLink}" target="_blank" rel="noopener">${personal}</a>` : personal}</td>
+          <td>${promo}</td>
+          <td>${aliasCell}</td>
+          <td>${fotoCell}</td>
+        </tr>
+      `;
+    }
+
+    async function getCloudData() {
+      const response = await fetch(CLOUD_DATA_URL, { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error(`Error al leer la nube: ${response.status}`);
+      }
+      const data = await response.json();
+      return Array.isArray(data.records) ? data.records : [];
+    }
+
+    async function refreshRecords() {
+      const metrics = {
+        total: document.getElementById('metricTotal'),
+        digital: document.getElementById('metricDigital'),
+        admins: document.getElementById('metricAdmins'),
+        indie: document.getElementById('metricIndie'),
+      };
+      const body = document.getElementById('recordsBody');
+
+      try {
+        const docs = await getCloudData();
+        docs.sort((a, b) => new Date(b.creadoEn) - new Date(a.creadoEn));
+
+        metrics.total.textContent = docs.length;
+        metrics.digital.textContent = docs.filter(item => item.promoDigital).length;
+        metrics.admins.textContent = docs.filter(item => item.rol === 'administracion').length;
+        metrics.indie.textContent = docs.filter(item => item.rol === 'independiente' || item.rol === 'agencia').length;
+
+        if (!docs.length) {
+          body.innerHTML = '<tr><td colspan="7">No se encontraron registros aún.</td></tr>';
+          return;
+        }
+
+        body.innerHTML = docs.map(renderRecord).join('');
+      } catch (error) {
+        console.error('Error al cargar datos desde la nube:', error);
+        body.innerHTML = '<tr><td colspan="7">Error al cargar datos. Revisa la consola.</td></tr>';
+      }
+    }
+
+    async function initAdminPanel() {
+      await refreshRecords();
+      setInterval(refreshRecords, 3000);
+    }
+
+    initAdminPanel().catch((error) => {
+      console.error('Inicialización fallida:', error);
+      const body = document.getElementById('recordsBody');
+      body.innerHTML = '<tr><td colspan="7">No se pudo inicializar el panel en la nube. Revisa la consola.</td></tr>';
+    });
+  </script>
+</body>
+</html>

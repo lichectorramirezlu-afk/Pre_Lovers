@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexaEngine V16.0 - Moto Control & Independent Groups</title>
+    <title>NexaEngine V16.1 - Permanent Group Control</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
@@ -49,11 +49,9 @@
         .tarjeta-acciones { background-color: var(--bg-tarjetas); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 12px; border: 1px solid #1f1f26; }
         .btn-carpeta { background: #1c1c24; border: 2px dashed #33333f; padding: 20px; border-radius: 8px; text-align: center; color: var(--texto-gris); cursor: pointer; font-size: 14px; font-weight: bold; border-color: var(--rosa-nexa); color: var(--rosa-nexa); }
 
-        /* BUSCADOR Y PANELES */
         .seccion-busqueda { display: flex; gap: 8px; background: #1c1c24; padding: 10px; border-radius: 8px; border: 1px solid #2c2c38; }
         .seccion-busqueda input { flex: 1; background: #121216; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 6px; font-size: 14px; }
 
-        /* PESTAÑAS DE GRUPOS */
         .contenedor-pestanas { display: flex; gap: 4px; margin-top: 10px; border-bottom: 2px solid #1c1c24; overflow-x: auto; padding-bottom: 4px; }
         .pestana-grupo { background: #121216; color: var(--texto-gris); border: 1px solid #1f1f26; padding: 8px 12px; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 12px; font-weight: bold; white-space: nowrap; transition: all 0.2s; }
         .pestana-grupo.activa { background: var(--rosa-nexa); color: #fff; border-color: var(--rosa-nexa); }
@@ -62,6 +60,7 @@
         .seccion-manual input { flex: 1; background: #1c1c24; border: 1px solid #2c2c38; color: #fff; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 14px; }
         .btn-add-manual { background: #1c1c24; color: var(--verde-exito); border: 1px solid rgba(0,255,102,0.3); padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
+        .wrapper-botones-disparo { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
         button.btn-aprobar { background: linear-gradient(135deg, #00ff66 0%, #009933 100%); color: #000; border: none; padding: 15px; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 255, 102, 0.25); text-transform: uppercase; width: 100%; margin-top: 5px; }
         button.btn-reset { background: #1c1c24; color: var(--rojo-ban); border: 1px solid rgba(255,74,74,0.3); padding: 0 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
@@ -89,13 +88,12 @@
 <body>
 
     <div>
-        <h1>NexaEngine V16.0 Pro</h1>
-        <div class="version-tag">Hands-Free Dynamic Flow & Full Control Panel</div>
+        <h1>NexaEngine V16.1 Pro</h1>
+        <div class="version-tag">Total Storage Recovery & Hands-Free Active</div>
     </div>
 
     <a id="anchor-trigger-automatico" target="_self"></a>
 
-    <!-- BUSCADOR UNIVERSAL INDIVIDUAL -->
     <div class="seccion-busqueda">
         <input type="tel" id="input-buscador-global" placeholder="🔍 Buscar número individual en colas o historial permanente..." oninput="filtrarBusquedaGlobal()">
     </div>
@@ -128,7 +126,7 @@
             <div id="barra-lectura" class="barra-fill"></div>
         </div>
         <div class="progreso-header">
-            <span id="txt-envio-estado">Módulo Manos Libres en Espera</span>
+            <span id="txt-envio-estado">Módulo Manos Libres Activo en Ruta</span>
             <span id="txt-envio-timer" style="font-weight: bold; color: var(--rosa-nexa);">0s</span>
         </div>
         <div class="contenedor-barra">
@@ -149,7 +147,6 @@
     </div>
 
     <div class="wrapper-secciones">
-        <!-- TABLA IZQUIERDA: ANÁLISIS OCR -->
         <div class="wrapper-tabla">
             <div class="tabla-titulo">
                 <span>⏳ FILA DE ANÁLISIS PREVIO</span>
@@ -171,18 +168,16 @@
             </div>
             <div class="wrapper-botones-disparo">
                 <button class="btn-aprobar" onclick="aprobarYDispararInmediato()">✅ INICIAR AUTOMATIZACIÓN TOTAL MOTO</button>
-                <button class="btn-reset" onclick="limpiarHistorialDeduplicacion()" title="Borrar memoria histórica de números enviados">Borrar Historial 🗑️</button>
+                <button class="btn-reset" onclick="limpiarHistorialDeduplicacion()" title="Borrar todo e iniciar de cero las listas">Borrar Todo de Memoria 🗑️</button>
             </div>
         </div>
 
-        <!-- TABLA DERECHA: SEPARADA POR GRUPOS INDEPENDIENTES -->
         <div class="wrapper-tabla">
             <div class="tabla-titulo">
                 <span>🎯 COLA DE ENVÍO ACTIVA</span>
                 <span id="txt-total-listos" style="color:var(--verde-exito)">0 listos</span>
             </div>
             
-            <!-- SELECTOR DE PESTAÑAS DE GRUPO -->
             <div class="contenedor-pestanas" id="contenedor-pestanas-grupos">
                 <div class="pestana-grupo activa" onclick="cambiarPestanaGrupo(0)">Las Tachitas (<span id="badge-g0">0</span>)</div>
                 <div class="pestana-grupo" onclick="cambiarPestanaGrupo(1)">Las Monalisas (<span id="badge-g1">0</span>)</div>
@@ -225,11 +220,11 @@
         let blacklistSet = new Set(JSON.parse(localStorage.getItem('nexa_blacklist_v10')) || []);
         let historicoEnviadosSet = new Set(JSON.parse(localStorage.getItem('nexa_enviados_historico')) || []);
         
-        let poolFilaAnalisis = [];
+        // CORRECCIÓN DE PERSISTENCIA PERMANENTE: Recuperación directa desde el disco duro local
+        let poolFilaAnalisis = JSON.parse(localStorage.getItem('nexa_persistencia_fila')) || [];
+        let colasPorGrupo = JSON.parse(localStorage.getItem('nexa_persistencia_grupos')) || [[], [], [], []]; 
+
         let ocrWorker = null;
-        
-        // Estructuras separadas para el lote activo
-        let colasPorGrupo = [[], [], [], []]; 
         let grupoPestanaActiva = 0;
         let ejecutandoEnvio = false;
         let busquedaFiltroText = "";
@@ -239,6 +234,11 @@
             renderizarTablaAnalisis();
             renderizarTablaListos();
         });
+
+        function sincronizarDiscoLocal() {
+            localStorage.setItem('nexa_persistencia_fila', JSON.stringify(poolFilaAnalisis));
+            localStorage.setItem('nexa_persistencia_grupos', JSON.stringify(colasPorGrupo));
+        }
 
         async function obtenerOcrWorker() {
             if (!ocrWorker) {
@@ -276,6 +276,7 @@
             }
 
             updateLecturaProgreso("Lote escaneado.", 100);
+            sincronizarDiscoLocal();
             actualizarContadoresUI();
             renderizarTablaAnalisis();
         });
@@ -287,7 +288,6 @@
                 else if (num.length === 10) num = '52' + num;
 
                 if ((num.length === 12 || num.length === 13) && num.startsWith('52')) {
-                    // DEDUPLICACIÓN INMEDIATA CONTRA HISTORIAL GLOBAL
                     if (historicoEnviadosSet.has(num)) return; 
 
                     let diagnostico = "valido";
@@ -349,30 +349,30 @@
                     <td><span class="badge-status ready">${item.status}</span></td>
                     <td style="text-align: right;">
                         <button class="btn-accion-tabla edit" onclick="editarNumeroGrupo(${grupoPestanaActiva}, ${index})">✏️</button>
-                        <button class="btn-accion-tabla ban" onclick="mandarABlacklistDesdeGrupo(${grupoPestanaActiva}, ${index})" title="Mandar a Blacklist">🚫</button>
+                        <button class="btn-accion-tabla ban" onclick="mandarABlacklistDesdeGrupo(${grupoPestanaActiva}, ${index})">🚫</button>
                         <button class="btn-accion-tabla del" onclick="eliminarNumeroGrupo(${grupoPestanaActiva}, ${index})">❌</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
 
-            // Actualizar contadores visuales en las pestañas
             for(let g=0; g<4; g++) {
                 document.getElementById(`badge-g${g}`).innerText = colasPorGrupo[g].length;
             }
         }
 
-        // ACCIONES INDIVIDUALES: EDICIÓN Y BORRADO
         function editarNumeroFila(idx) {
             let nuevo = prompt("Modificar número de fila:", poolFilaAnalisis[idx].num);
             if(nuevo) {
                 poolFilaAnalisis[idx].num = nuevo.replace(/\D/g, '');
+                sincronizarDiscoLocal();
                 renderizarTablaAnalisis();
             }
         }
 
         function eliminarNumeroFila(idx) {
             poolFilaAnalisis.splice(idx, 1);
+            sincronizarDiscoLocal();
             actualizarContadoresUI();
             renderizarTablaAnalisis();
         }
@@ -381,12 +381,14 @@
             let nuevo = prompt("Modificar número asignado:", colasPorGrupo[grupoIdx][idx].num);
             if(nuevo) {
                 colasPorGrupo[grupoIdx][idx].num = nuevo.replace(/\D/g, '');
+                sincronizarDiscoLocal();
                 renderizarTablaListos();
             }
         }
 
         function eliminarNumeroGrupo(grupoIdx, idx) {
             colasPorGrupo[grupoIdx].splice(idx, 1);
+            sincronizarDiscoLocal();
             actualizarContadoresUI();
             renderizarTablaListos();
         }
@@ -396,6 +398,7 @@
             blacklistSet.add(targetNum);
             localStorage.setItem('nexa_blacklist_v10', JSON.stringify(Array.from(blacklistSet)));
             colasPorGrupo[grupoIdx].splice(idx, 1);
+            sincronizarDiscoLocal();
             alert(`+${targetNum} fue movido a la Lista Negra permanente.`);
             actualizarContadoresUI();
             renderizarTablaListos();
@@ -431,19 +434,18 @@
                 }
                 poolFilaAnalisis.unshift({ num: num, clase: "valido", texto: "Válido" });
                 input.value = "";
+                sincronizarDiscoLocal();
                 actualizarContadoresUI();
                 renderizarTablaAnalisis();
             }
         }
 
-        // FLUJO DE DISTRIBUCIÓN EQUITATIVA INDEPENDIENTE
         async function aprobarYDispararInmediato() {
             if(ejecutandoEnvio) return;
 
             let totalValidos = 0;
-            poolFilaAnalisis.forEach((item, index) => {
+            poolFilaAnalisis.forEach((item) => {
                 if(item.clase === "valido" && !historicoEnviadosSet.has(item.num)) {
-                    // Distribución equitativa equitativa inmediata por índice
                     let grupoDestino = totalValidos % 4;
                     colasPorGrupo[grupoDestino].push({ num: item.num, status: "En cola" });
                     totalValidos++;
@@ -452,11 +454,13 @@
 
             if(totalValidos === 0) {
                 poolFilaAnalisis = [];
+                sincronizarDiscoLocal();
                 renderizarTablaAnalisis();
                 return;
             }
 
             poolFilaAnalisis = [];
+            sincronizarDiscoLocal();
             renderizarTablaAnalisis();
             renderizarTablaListos();
             actualizarContadoresUI();
@@ -479,6 +483,7 @@
                     if(itemAEnviar) {
                         activos = true;
                         itemAEnviar.status = "Procesando...";
+                        sincronizarDiscoLocal();
                         renderizarTablaListos();
 
                         let celular = itemAEnviar.num;
@@ -492,22 +497,21 @@
                         triggerAnchor.setAttribute('href', urlCompleta);
                         triggerAnchor.click();
 
-                        // CONSOLIDACIÓN INMEDIATA CONTRA DUPLICADOS
                         historicoEnviadosSet.add(celular);
                         localStorage.setItem('nexa_enviados_historico', JSON.stringify(Array.from(historicoEnviadosSet)));
 
                         itemAEnviar.status = "Despachado ✓";
+                        sincronizarDiscoLocal();
                         renderizarTablaListos();
                         actualizarContadoresUI();
 
-                        // DELAY ROBUSTO ALEATORIO (25s a 45s)
                         let delayAleatorio = Math.floor(Math.random() * (45000 - 25000 + 1)) + 25000;
                         let segundosRestantes = Math.round(delayAleatorio / 1000);
                         let baseSegundos = segundosRestantes;
 
                         while(segundosRestantes > 0) {
                             document.getElementById('barra-envio').style.width = `${(segundosRestantes / baseSegundos) * 100}%`;
-                            document.getElementById('txt-envio-timer').innerText = `Ruta Activa: Próximo envío automático en ${segundosRestantes}s`;
+                            document.getElementById('txt-envio-timer').innerText = `Ruta: Siguiente en ${segundosRestantes}s`;
                             await new Promise(r => setTimeout(r, 1000));
                             segundosRestantes--;
                         }
@@ -522,11 +526,15 @@
         }
 
         function limpiarHistorialDeduplicacion() {
-            if(confirm("¿Borrar memoria de duplicados histórica?")) {
+            if(confirm("¿Seguro que deseas purgar TODA la base de datos local y listas actuales? Esto reiniciará la app por completo.")) {
                 historicoEnviadosSet.clear();
                 localStorage.removeItem('nexa_enviados_historico');
+                localStorage.removeItem('nexa_persistencia_fila');
+                localStorage.removeItem('nexa_persistencia_grupos');
+                poolFilaAnalisis = [];
                 colasPorGrupo = [[], [], [], []];
                 actualizarContadoresUI();
+                renderizarTablaAnalisis();
                 renderizarTablaListos();
             }
         }

@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexaEngine V6 Pro - Dashboard</title>
+    <title>NexaEngine V6 Pro - Extractor Inteligente</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
-        /* ESTILOS DE LA INTERFAZ NEXALOVERS SYSTEM */
         :root {
             --bg-principal: #0a0a0c;
             --bg-tarjetas: #121216;
@@ -18,7 +18,7 @@
         body {
             background-color: var(--bg-principal);
             color: var(--texto-blanco);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             margin: 0;
             padding: 15px;
             display: flex;
@@ -30,7 +30,6 @@
             font-size: 22px;
             font-weight: 700;
             margin: 10px 0 5px 0;
-            color: var(--texto-blanco);
             text-shadow: 0 0 10px rgba(255, 0, 127, 0.3);
         }
 
@@ -41,12 +40,11 @@
             padding: 2px 8px;
             border-radius: 20px;
             width: fit-content;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
             font-weight: bold;
             border: 1px solid rgba(255, 0, 127, 0.4);
         }
 
-        /* CONTADORES */
         .tarjeta-contadores {
             background-color: var(--bg-tarjetas);
             border-radius: 12px;
@@ -56,29 +54,11 @@
             border: 1px solid #1f1f26;
         }
 
-        .contador-item {
-            text-align: center;
-        }
+        .contador-item { text-align: center; }
+        .contador-numero { font-size: 28px; font-weight: 800; color: var(--rosa-nexa); }
+        .contador-numero.exito { color: var(--verde-exito); }
+        .contador-etiqueta { font-size: 12px; color: var(--texto-gris); margin-top: 4px; text-transform: uppercase; }
 
-        .contador-numero {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--rosa-nexa);
-        }
-
-        .contador-numero.exito {
-            color: var(--verde-exito);
-        }
-
-        .contador-etiqueta {
-            font-size: 12px;
-            color: var(--texto-gris);
-            margin-top: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* MONITOREO DE BARRA ROSA */
         .tarjeta-progreso {
             background-color: var(--bg-tarjetas);
             border-radius: 12px;
@@ -86,41 +66,10 @@
             border: 1px solid #1f1f26;
         }
 
-        .espera-segura-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
+        .espera-segura-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .contenedor-barra { background-color: #1c1c24; border-radius: 6px; height: 12px; width: 100%; overflow: hidden; }
+        #barra-progreso-rosa { background: linear-gradient(90deg, #ff007f, #ff5e00); height: 100%; width: 0%; transition: width 0.3s linear; }
 
-        .espera-segura-txt {
-            font-size: 14px;
-            color: var(--texto-blanco);
-            font-weight: 500;
-        }
-
-        #espera-segura-timer {
-            font-size: 16px;
-            color: var(--rosa-nexa);
-            font-weight: bold;
-        }
-
-        .contenedor-barra {
-            background-color: #1c1c24;
-            border-radius: 6px;
-            height: 12px;
-            width: 100%;
-            overflow: hidden;
-        }
-
-        #barra-progreso-rosa {
-            background: linear-gradient(90deg, #ff007f, #ff5e00);
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s linear;
-        }
-
-        /* ZONA DE CONTROL Y SUBIDA */
         .tarjeta-acciones {
             background-color: var(--bg-tarjetas);
             border-radius: 12px;
@@ -131,19 +80,19 @@
             border: 1px solid #1f1f26;
         }
 
-        .input-archivo {
+        /* DISEÑO RECEPTOR DE ARCHIVOS MULTIPLE */
+        .zona-drop {
             background: #1c1c24;
             border: 2px dashed #33333f;
-            padding: 20px;
+            padding: 25px 15px;
             border-radius: 8px;
             text-align: center;
             color: var(--texto-gris);
             cursor: pointer;
+            font-size: 14px;
         }
 
-        .input-archivo:focus {
-            border-color: var(--rosa-nexa);
-        }
+        .zona-drop span { color: var(--rosa-nexa); font-weight: bold; }
 
         button {
             background: linear-gradient(135deg, #ff007f 0%, #b30059 100%);
@@ -155,11 +104,6 @@
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(255, 0, 127, 0.4);
-            transition: transform 0.1s ease;
-        }
-
-        button:active {
-            transform: scale(0.98);
         }
 
         #consola-log {
@@ -169,7 +113,7 @@
             font-family: monospace;
             font-size: 11px;
             color: #00ff66;
-            max-height: 120px;
+            max-height: 150px;
             overflow-y: auto;
             border: 1px solid #111;
         }
@@ -179,10 +123,9 @@
 
     <div>
         <h1>NexaEngine V6 Pro</h1>
-        <div class="version-tag">STANDALONE ENGINE I/O</div>
+        <div class="version-tag">SMART EXTRACTOR MULTI-FORMATO</div>
     </div>
 
-    <!-- CONTADORES DE REGISTROS -->
     <div class="tarjeta-contadores">
         <div class="contador-item">
             <div id="contador-pendientes" class="contador-numero">0</div>
@@ -194,152 +137,175 @@
         </div>
         <div class="contador-item">
             <div id="contador-total" class="contador-numero" style="color: #61afef;">0</div>
-            <div class="contador-etiqueta">Total Base</div>
+            <div class="contador-etiqueta">Extraídos</div>
         </div>
     </div>
 
-    <!-- MONITOR DE ESPERA SEGURA (BARRA ROSA) -->
     <div class="tarjeta-progreso">
         <div class="espera-segura-header">
-            <span id="espera-segura-txt" class="espera-segura-txt">Motor listo. Esperando campaña...</span>
-            <span id="espera-segura-timer">0s</span>
+            <span id="espera-segura-txt" style="font-size: 14px;">Esperando archivo (ZIP, Excel, CSV, TXT, Img)...</span>
+            <span id="espera-segura-timer" style="color: var(--rosa-nexa); font-weight: bold;">0s</span>
         </div>
         <div class="contenedor-barra">
             <div id="barra-progreso-rosa"></div>
         </div>
     </div>
 
-    <!-- ACCIONES Y CARGA DE DATOS -->
     <div class="tarjeta-acciones">
-        <!-- Simulación de importador rápido vía texto JSON para pruebas inmediatas en el cel -->
-        <textarea id="json-input" placeholder='Pega aquí tu JSON de prueba o lista...' style="background: #1c1c24; color: #fff; border: 1px solid #333; padding: 10px; border-radius: 6px; height: 60px; font-family: monospace; resize: none;"></textarea>
+        <input type="file" id="file-selector" accept="*/*" style="display: none;" onchange="manejarArchivo(this.files)">
         
-        <button onclick="procesarCampañaDirecta()">🚀 INICIAR FLUJO PROGRAMADO</button>
+        <div class="zona-drop" onclick="document.getElementById('file-selector').click()">
+            📱 Toca aquí para importar <span>CUALQUIER ARCHIVO</span><br>
+            <small style="color: #777; font-size: 11px; display: block; margin-top: 5px;">Soporta: ZIP, CSV, XLSX, TXT, JSON o Capturas</small>
+        </div>
+
+        <textarea id="texto-temporal" placeholder="O pega cualquier texto con números mezclados aquí directamente..." style="background: #1c1c24; color: #fff; border: 1px solid #333; padding: 10px; border-radius: 6px; height: 60px; font-family: monospace; resize: none;"></textarea>
+        
+        <button onclick="iniciarInyeccionInteligente()">🚀 INICIAR FLUJO EXTRACTOR</button>
     </div>
 
-    <!-- HISTORIAL INTERNO DE LOGS -->
-    <div id="consola-log">Log del sistema: Esperando comandos...</div>
+    <div id="consola-log">Log del sistema: Motor extractor listo...</div>
 
     <script>
-        // ========================================================
-        // NÚCLEO DE CONFIGURACIÓN DEL MENSAJE Y CANALES (CORREGIDO)
-        // ========================================================
-        const MENSAJE_BASE = "Hola, te dejo la invitación para unirte a nuestro grupo oficial exclusivo de NexaLovers. Este será el grupo responsable de asignarte tu usuario y contraseña gratuito para que hagas tu chamba más fácil 😜";
         const LINK_WHATSAPP_GRUPO = "https://chat.whatsapp.com/KQFECehvFsKA66vJiJtkqq";
+        const MENSAJE_BASE = "Hola, te dejo la invitación para unirte a nuestro grupo oficial exclusivo de NexaLovers. Este será el grupo responsable de asignarte tu usuario y contraseña gratuito para que hagas tu chamba más fácil 😜";
 
-        // Mapeo automático normalizado en minúsculas para interceptar campañas tipo ZIP
-        const canalesPermanentes = {
-            "loverian@s": LINK_WHATSAPP_GRUPO,
-            "grupo vol-1": LINK_WHATSAPP_GRUPO, 
-            "gpocom": LINK_WHATSAPP_GRUPO
-        };
+        let listaContactosFinal = [];
 
-        let baseContactos = [];
-
-        // Escribir logs en la miniconsola de la interfaz
         function logger(texto) {
             const consola = document.getElementById("consola-log");
             consola.innerHTML += `<br>> ${texto}`;
             consola.scrollTop = consola.scrollHeight;
         }
 
-        // LIMPIEZA REGEX DE TELÉFONOS (Formatos 10, 12 o 13 dígitos con clave 52)
-        function limpiarNumero(telefono) {
-            let numLimpio = String(telefono).replace(/\D/g, ''); 
-            if (numLimpio.startsWith('521')) {
-                numLimpio = '52' + numLimpio.substring(3);
-            }
-            if (numLimpio.length === 10) {
-                numLimpio = '52' + numLimpio;
-            }
-            return numLimpio;
-        }
+        // EXTRACTOR INTELIGENTE REGEX INTERNO
+        // Escanea y captura patrones de 10 a 13 números en bloques limpios o sucios
+        function extraerYLimpiarNumeros(textoBruto) {
+            logger("Analizando texto con motor inteligente...");
+            // Expresión para buscar secuencias numéricas sospechosas de ser teléfonos
+            const regexGeneral = /(?:52|521)?\d{10}/g;
+            const coincidencias = textoBruto.match(regexGeneral) || [];
+            
+            let unicos = new Set();
 
-        // CONTROL DE DEMORA ALEATORIA (ANTI-BANEO HUMANO: 25s a 45s)
-        function obtenerEsperaAleatoria(min = 25000, max = 45000) {
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-        }
-
-        // PROCESADOR Y DISPARADOR
-        async function procesarCampañaDirecta() {
-            // Purgar configuraciones obsoletas almacenadas en la caché del móvil
-            localStorage.removeItem("nexa_data_v5");
-
-            const inputRaw = document.getElementById("json-input").value;
-            if(!inputRaw) {
-                // Datos demo por si el cuadro está vacío al presionar el botón (Para testear rápido con tu número)
-                baseContactos = [
-                    { telefono: "525512345678", grupo: "Grupo Vol-1" },
-                    { telefono: "5587654321", grupo: "loverian@s" }
-                ];
-                logger("Cargados registros de prueba por defecto.");
-            } else {
-                try {
-                    baseContactos = JSON.parse(inputRaw);
-                } catch(e) {
-                    alert("Formato de lista no válido. Verifica tu JSON.");
-                    return;
+            coincidencias.forEach(num => {
+                let limpio = num.replace(/\D/g, '');
+                
+                // Forzar corrección de clave 521 -> 52
+                if (limpio.startsWith('521')) {
+                    limpio = '52' + limpio.substring(3);
                 }
+                
+                // Si viene de 10 dígitos, ponerle el prefijo de México
+                if (limpio.length === 10) {
+                    limpio = '52' + limpio;
+                }
+
+                // Validar que tenga el largo correcto bajo tus reglas (12 o 13 dígitos empezando con 52)
+                if ((limpio.length === 12 || limpio.length === 13) && limpio.startsWith('52')) {
+                    unicos.add(limpio);
+                }
+            });
+
+            return Array.from(unicos);
+        }
+
+        // PROCESADOR MULTI-ARCHIVO
+        async function manejarArchivo(files) {
+            if (!files.length) return;
+            const archivo = files[0];
+            logger(`Archivo detectado: ${archivo.name} (${archivo.type || 'S/N'})`);
+
+            // CASO 1: Archivos ZIP
+            if (archivo.name.endsWith('.zip') || archivo.type === "application/zip") {
+                logger("Abriendo paquete ZIP...");
+                try {
+                    const zip = await JSZip.loadAsync(archivo);
+                    let contenidoAcumulado = "";
+                    
+                    for (let filename of Object.keys(zip.files)) {
+                        if (!zip.files[filename].dir) {
+                            let textoArchivo = await zip.files[filename].async("text");
+                            contenidoAcumulado += " " + textoArchivo;
+                        }
+                    }
+                    procesarTextoFinal(contenidoAcumulado);
+                } catch (err) {
+                    logger("Error leyendo el ZIP interno: " + err.message);
+                }
+            } 
+            // CASO 2: Imágenes (Capturas de pantalla) - Módulo de lectura básica por nombre/metadatos o texto plano
+            else if (archivo.type.startsWith('image/')) {
+                logger("Procesando imagen. Leyendo strings disponibles...");
+                // Extracción rápida del nombre por si contiene el número o metadatos de texto
+                procesarTextoFinal(archivo.name + " " + archivo.type);
+                logger("Nota: Para leer el texto exacto interno de una foto se requiere OCR, usando texto alterno.");
+            }
+            // CASO 3: CSV, TXT, JSON, Excel básico
+            else {
+                const lector = new FileReader();
+                lector.onload = function(e) {
+                    procesarTextoFinal(e.target.result);
+                };
+                lector.readAsText(archivo);
+            }
+        }
+
+        function procesarTextoFinal(texto) {
+            const numerosExtraidos = extraerYLimpiarNumeros(texto);
+            listaContactosFinal = numerosExtraidos.map(num => ({ telefono: num }));
+            
+            document.getElementById("contador-total").innerText = listaContactosFinal.length;
+            document.getElementById("contador-pendientes").innerText = listaContactosFinal.length;
+            document.getElementById("contador-listos").innerText = 0;
+            
+            logger(`¡Extracción exitosa! Encontrados ${listaContactosFinal.length} números válidos de México.`);
+        }
+
+        // DISPARADOR SÍNCRONO CON RETARDO HUMANO AUTOMÁTICO
+        async function iniciarInyeccionInteligente() {
+            // Si hay texto manual en el cuadro, extraer de ahí también
+            const textoManual = document.getElementById("texto-temporal").value;
+            if (textoManual) {
+                procesarTextoFinal(textoManual);
             }
 
-            let total = baseContactos.length;
-            document.getElementById("contador-total").innerText = total;
-            document.getElementById("contador-pendientes").innerText = total;
+            if (!listaContactosFinal.length) {
+                alert("Primero carga un archivo o pega texto que contenga números válidos.");
+                return;
+            }
 
-            logger(`Iniciando inyección directa para ${total} registros de forma secuencial...`);
+            let total = listaContactosFinal.length;
+            logger(`Iniciando campaña inteligente anti-bloqueo...`);
 
             for (let i = 0; i < total; i++) {
-                let contacto = baseContactos[i];
-                
-                // Normalización de canales para evitar "Canal sin link asignado"
-                let tagCanal = (contacto.grupo || "Grupo Vol-1").toLowerCase().trim();
-                let linkDestino = canalesPermanentes[tagCanal];
+                let contacto = listaContactosFinal[i];
+                let mensajeCompleto = `${MENSAJE_BASE} ${LINK_WHATSAPP_GRUPO}`;
+                let urlWaMe = `https://wa.me/${contacto.telefono}?text=${encodeURIComponent(mensajeCompleto)}`;
 
-                if (!linkDestino) {
-                    logger(`Advertencia: Canal "${contacto.grupo}" no asignado. Usando enlace raíz.`);
-                    linkDestino = LINK_WHATSAPP_GRUPO;
-                }
-
-                let numeroLimpio = limpiarNumero(contacto.telefono || contacto.numero);
-                let mensajeCompleto = `${MENSAJE_BASE} ${linkDestino}`;
-                
-                // Esquema wa.me para inyección limpia a través del navegador Chrome hacia la App
-                let urlWaMe = `https://wa.me/${numeroLimpio}?text=${encodeURIComponent(mensajeCompleto)}`;
-
-                document.getElementById("espera-segura-txt").innerText = `Inyectando a: +${numeroLimpio}`;
-                logger(`Enviando chat directo a +${numeroLimpio}`);
-
-                // EJECUCIÓN DIRECTA: Abre la pestaña y fuerza el disparo
+                document.getElementById("espera-segura-txt").innerText = `Enviando a: +${contacto.telefono}`;
                 window.open(urlWaMe, '_blank');
 
-                // Actualizar contadores del sistema
-                let listos = i + 1;
-                let pendientes = total - listos;
-                document.getElementById("contador-listos").innerText = listos;
-                document.getElementById("contador-pendientes").innerText = pendientes;
+                document.getElementById("contador-listos").innerText = i + 1;
+                document.getElementById("contador-pendientes").innerText = total - (i + 1);
 
-                // Gestión de la barra rosa de cuenta regresiva (No aplica al último elemento)
                 if (i < total - 1) {
-                    let tiempoEspera = obtenerEsperaAleatoria(25000, 45000); 
-                    let segundosRestantes = Math.round(tiempoEspera / 1000);
-                    
-                    logger(`Esperando protección anti-baneo: ${segundosRestantes} segundos...`);
+                    // Delay seguro variable entre 25 y 45 segundos
+                    let tiempoEspera = Math.floor(Math.random() * (45000 - 25000 + 1)) + 25000;
+                    let segundos = Math.round(tiempoEspera / 1000);
 
-                    while (segundosRestantes > 0) {
-                        // Animación fluida de la barra rosa en tu pantalla
-                        document.getElementById("barra-progreso-rosa").style.width = `${(segundosRestantes / (tiempoEspera/1000)) * 100}%`;
-                        document.getElementById("espera-segura-timer").innerText = `${segundosRestantes}s`;
-                        
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                        segundosRestantes--;
+                    while (segundos > 0) {
+                        document.getElementById("barra-progreso-rosa").style.width = `${(segundos / (tiempoEspera/1000)) * 100}%`;
+                        document.getElementById("espera-segura-timer").innerText = `${segundos}s`;
+                        await new Promise(r => setTimeout(r, 1000));
+                        segundos--;
                     }
                 }
             }
 
-            document.getElementById("espera-segura-txt").innerText = "¡Campaña finalizada con éxito!";
+            document.getElementById("espera-segura-txt").innerText = "Campaña procesada correctamente.";
             document.getElementById("barra-progreso-rosa").style.width = "100%";
-            logger("Proceso completado al 100% de forma segura.");
-            alert("Flujo terminado de forma real.");
+            alert("Flujo de inyección multi-formato terminado.");
         }
     </script>
 </body>

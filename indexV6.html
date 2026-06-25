@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexaEngine V15.9 - Hands-Free Moto Rider Edition</title>
+    <title>NexaEngine V16.0 - Moto Control & Independent Groups</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
@@ -36,7 +36,6 @@
         .tarjeta-stat { background-color: var(--bg-tarjetas); border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #1f1f26; }
         .stat-numero { font-size: 24px; font-weight: 800; color: var(--rosa-nexa); }
         .stat-numero.unicos { color: var(--verde-exito); }
-        .stat-numero.repetidos { color: var(--azul-info); }
         .stat-numero.ban { color: var(--rojo-ban); }
         .stat-etiqueta { font-size: 11px; color: var(--texto-gris); text-transform: uppercase; font-weight: 600; margin-top: 4px; }
 
@@ -50,32 +49,39 @@
         .tarjeta-acciones { background-color: var(--bg-tarjetas); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 12px; border: 1px solid #1f1f26; }
         .btn-carpeta { background: #1c1c24; border: 2px dashed #33333f; padding: 20px; border-radius: 8px; text-align: center; color: var(--texto-gris); cursor: pointer; font-size: 14px; font-weight: bold; border-color: var(--rosa-nexa); color: var(--rosa-nexa); }
 
-        .seccion-info-grupos { background: #1c1c24; padding: 12px; border-radius: 8px; border: 1px solid #2c2c38; font-size: 12px; }
-        .seccion-info-grupos div { color: var(--texto-gris); margin-top: 4px; font-family: monospace; }
+        /* BUSCADOR Y PANELES */
+        .seccion-busqueda { display: flex; gap: 8px; background: #1c1c24; padding: 10px; border-radius: 8px; border: 1px solid #2c2c38; }
+        .seccion-busqueda input { flex: 1; background: #121216; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 6px; font-size: 14px; }
+
+        /* PESTAÑAS DE GRUPOS */
+        .contenedor-pestanas { display: flex; gap: 4px; margin-top: 10px; border-bottom: 2px solid #1c1c24; overflow-x: auto; padding-bottom: 4px; }
+        .pestana-grupo { background: #121216; color: var(--texto-gris); border: 1px solid #1f1f26; padding: 8px 12px; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 12px; font-weight: bold; white-space: nowrap; transition: all 0.2s; }
+        .pestana-grupo.activa { background: var(--rosa-nexa); color: #fff; border-color: var(--rosa-nexa); }
 
         .seccion-manual { display: flex; gap: 8px; }
         .seccion-manual input { flex: 1; background: #1c1c24; border: 1px solid #2c2c38; color: #fff; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 14px; }
         .btn-add-manual { background: #1c1c24; color: var(--verde-exito); border: 1px solid rgba(0,255,102,0.3); padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
-        .wrapper-botones-disparo { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
         button.btn-aprobar { background: linear-gradient(135deg, #00ff66 0%, #009933 100%); color: #000; border: none; padding: 15px; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 255, 102, 0.25); text-transform: uppercase; width: 100%; margin-top: 5px; }
         button.btn-reset { background: #1c1c24; color: var(--rojo-ban); border: 1px solid rgba(255,74,74,0.3); padding: 0 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
         .wrapper-secciones { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .wrapper-tabla { background-color: var(--bg-tarjetas); border-radius: 12px; padding: 12px; border: 1px solid #1f1f26; display: flex; flex-direction: column; gap: 8px; }
         .tabla-titulo { font-size: 12px; color: var(--texto-gris); text-transform: uppercase; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        .contenedor-tabla { max-height: 320px; overflow-y: auto; border-radius: 6px; border: 1px solid #1c1c24; }
+        .contenedor-tabla { max-height: 380px; overflow-y: auto; border-radius: 6px; border: 1px solid #1c1c24; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
         th { background-color: #1c1c24; padding: 10px; color: var(--texto-gris); font-weight: 600; position: sticky; top: 0; z-index: 10; }
         td { padding: 8px 10px; border-bottom: 1px solid #1c1c24; font-family: monospace; vertical-align: middle; }
         
         .badge-status { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
         .badge-status.valido { background: rgba(0, 255, 102, 0.1); color: var(--verde-exito); }
-        .badge-status.repetido { background: rgba(97, 175, 239, 0.1); color: var(--azul-info); }
         .badge-status.blacklist { background: rgba(255, 74, 74, 0.15); color: var(--rojo-ban); }
         .badge-status.ready { background: rgba(255, 0, 127, 0.15); color: var(--rosa-nexa); }
 
-        .btn-ban { color: var(--rojo-ban); border: 1px solid rgba(255, 74, 74, 0.3); background: rgba(255, 74, 74, 0.05); padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+        .btn-accion-tabla { background: #1c1c24; border: 1px solid #333; color: #fff; padding: 3px 6px; border-radius: 4px; font-size: 11px; cursor: pointer; margin-left: 2px; }
+        .btn-accion-tabla.edit { color: var(--azul-info); border-color: rgba(97,175,239,0.3); }
+        .btn-accion-tabla.del { color: var(--rojo-ban); border-color: rgba(255,74,74,0.3); }
+        .btn-accion-tabla.ban { color: var(--naranja-alerta); border-color: rgba(255,146,51,0.3); }
 
         #anchor-trigger-automatico { display: none; }
     </style>
@@ -83,20 +89,25 @@
 <body>
 
     <div>
-        <h1>NexaEngine V15.9 Pro</h1>
-        <div class="version-tag">Hands-Free Mode & Equitable Round-Robin Active</div>
+        <h1>NexaEngine V16.0 Pro</h1>
+        <div class="version-tag">Hands-Free Dynamic Flow & Full Control Panel</div>
     </div>
 
     <a id="anchor-trigger-automatico" target="_self"></a>
 
+    <!-- BUSCADOR UNIVERSAL INDIVIDUAL -->
+    <div class="seccion-busqueda">
+        <input type="tel" id="input-buscador-global" placeholder="🔍 Buscar número individual en colas o historial permanente..." oninput="filtrarBusquedaGlobal()">
+    </div>
+
     <div class="dashboard-grid">
         <div class="tarjeta-stat">
             <div id="c-fila" class="stat-numero azul" style="color:var(--azul-info)">0</div>
-            <div class="stat-etiqueta">En Fila Análisis</div>
+            <div class="stat-etiqueta">Fila de Análisis</div>
         </div>
         <div class="tarjeta-stat">
             <div id="c-unicos" class="stat-numero unicos">0</div>
-            <div class="stat-etiqueta">Aprobados Lote Actual</div>
+            <div class="stat-etiqueta">Cola Lote Activo</div>
         </div>
         <div class="tarjeta-stat">
             <div id="c-blacklist" class="stat-numero ban">0</div>
@@ -104,7 +115,7 @@
         </div>
         <div class="tarjeta-stat">
             <div id="c-historico" class="stat-numero" style="color: var(--naranja-alerta)">0</div>
-            <div class="stat-etiqueta">Historial Total Excluidos</div>
+            <div class="stat-etiqueta">Historial Enviados</div>
         </div>
     </div>
 
@@ -126,14 +137,9 @@
     </div>
 
     <div class="tarjeta-acciones">
-        <div class="seccion-info-grupos">
-            <span style="font-weight: bold; color: var(--rosa-nexa); text-transform: uppercase; font-size: 11px;">🔄 Distribución Equitativa Automatizada:</span>
-            <div>1. Las Tachitas | 2. Las Monalisas | 3. Pura Hieloka | 4. El Punto</div>
-        </div>
-
         <input type="file" id="input-universal-masivo" multiple accept="image/*" style="display: none;">
         <div class="btn-carpeta" onclick="document.getElementById('input-universal-masivo').click()">
-            📥 CARGAR MÚLTIPLE (SELECCIONAR IMÁGENES O CAPTURAS)
+            📥 SELECCIONAR MÚLTIPLES CAPTURAS DE MIEMBROS
         </div>
 
         <div class="seccion-manual">
@@ -143,6 +149,7 @@
     </div>
 
     <div class="wrapper-secciones">
+        <!-- TABLA IZQUIERDA: ANÁLISIS OCR -->
         <div class="wrapper-tabla">
             <div class="tabla-titulo">
                 <span>⏳ FILA DE ANÁLISIS PREVIO</span>
@@ -154,36 +161,46 @@
                         <tr>
                             <th>Número</th>
                             <th>Diagnóstico</th>
-                            <th style="text-align: right;">Acción</th>
+                            <th style="text-align: right;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-analisis-body">
-                        <tr><td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Fila vacía. Sube capturas o archivos.</td></tr>
+                        <tr><td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Fila vacía. Sube capturas.</td></tr>
                     </tbody>
                 </table>
             </div>
             <div class="wrapper-botones-disparo">
-                <button class="btn-aprobar" onclick="aprobarYDispararInmediato()">✅ APROBAR E INICIAR CICLO AUTOMÁTICO MANOS LIBRES</button>
+                <button class="btn-aprobar" onclick="aprobarYDispararInmediato()">✅ INICIAR AUTOMATIZACIÓN TOTAL MOTO</button>
                 <button class="btn-reset" onclick="limpiarHistorialDeduplicacion()" title="Borrar memoria histórica de números enviados">Borrar Historial 🗑️</button>
             </div>
         </div>
 
+        <!-- TABLA DERECHA: SEPARADA POR GRUPOS INDEPENDIENTES -->
         <div class="wrapper-tabla">
             <div class="tabla-titulo">
-                <span>🎯 LISTOS / ENVIADOS EN ESTE LOTE</span>
+                <span>🎯 COLA DE ENVÍO ACTIVA</span>
                 <span id="txt-total-listos" style="color:var(--verde-exito)">0 listos</span>
             </div>
+            
+            <!-- SELECTOR DE PESTAÑAS DE GRUPO -->
+            <div class="contenedor-pestanas" id="contenedor-pestanas-grupos">
+                <div class="pestana-grupo activa" onclick="cambiarPestanaGrupo(0)">Las Tachitas (<span id="badge-g0">0</span>)</div>
+                <div class="pestana-grupo" onclick="cambiarPestanaGrupo(1)">Las Monalisas (<span id="badge-g1">0</span>)</div>
+                <div class="pestana-grupo" onclick="cambiarPestanaGrupo(2)">Pura Hieloka (<span id="badge-g2">0</span>)</div>
+                <div class="pestana-grupo" onclick="cambiarPestanaGrupo(3)">El Punto (<span id="badge-g3">0</span>)</div>
+            </div>
+
             <div class="contenedor-tabla">
                 <table>
                     <thead>
                         <tr>
                             <th>Número</th>
                             <th>Estatus</th>
-                            <th style="text-align: right;">Acción</th>
+                            <th style="text-align: right;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-listos-body">
-                        <tr><td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Ningún número despachado en este lote.</td></tr>
+                        <tr><td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Sin registros asignados a este grupo.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -209,9 +226,12 @@
         let historicoEnviadosSet = new Set(JSON.parse(localStorage.getItem('nexa_enviados_historico')) || []);
         
         let poolFilaAnalisis = [];
-        let poolContactosAprobadosLote = [];
-        let ocrWorker = null;
+        
+        // Estructuras separadas para el lote activo
+        let colasPorGrupo = [[], [], [], []]; 
+        let grupoPestanaActiva = 0;
         let ejecutandoEnvio = false;
+        let busquedaFiltroText = "";
 
         window.addEventListener('DOMContentLoaded', () => {
             actualizarContadoresUI();
@@ -238,7 +258,7 @@
             for (let i = 0; i < totalArchivos; i++) {
                 let archivoActual = archivos[i];
                 let porcentajeLote = Math.round((i / totalArchivos) * 100);
-                updateLecturaProgreso(`Procesando (${i + 1}/${totalArchivos})`, porcentajeLote);
+                updateLecturaProgreso(`Escaneando (${i + 1}/${totalArchivos})`, porcentajeLote);
 
                 if (archivoActual.type.startsWith('image/')) {
                     try {
@@ -248,16 +268,7 @@
                         const extraidos = textoLimpioDeEspacios.match(/(?:52)?\d{10}/g) || [];
                         inyectarFilaAnalisisBatch(extraidos);
                     } catch (err) {
-                        console.error("Error en OCR:", err);
-                    }
-                } else {
-                    try {
-                        const textoCompleto = await archivoActual.text();
-                        let textoLimpioDeEspacios = textoCompleto.replace(/[\s\t\n\r]/g, '');
-                        const extraidos = textoLimpioDeEspacios.match(/(?:52)?\d{10}/g) || [];
-                        inyectarFilaAnalisisBatch(extraidos);
-                    } catch (err) {
-                        console.error("Error en lectura:", err);
+                        console.error(err);
                     }
                 }
                 await new Promise(resolve => setTimeout(resolve, 20));
@@ -275,15 +286,15 @@
                 else if (num.length === 10) num = '52' + num;
 
                 if ((num.length === 12 || num.length === 13) && num.startsWith('52')) {
+                    // DEDUPLICACIÓN INMEDIATA CONTRA HISTORIAL GLOBAL
+                    if (historicoEnviadosSet.has(num)) return; 
+
                     let diagnostico = "valido";
                     let textoDiag = "Válido";
 
                     if (blacklistSet.has(num)) {
                         diagnostico = "blacklist";
                         textoDiag = "Blacklist";
-                    } else if (historicoEnviadosSet.has(num)) {
-                        diagnostico = "repetido";
-                        textoDiag = "Ya Enviado Histórico";
                     }
 
                     if (!poolFilaAnalisis.some(item => item.num === num)) {
@@ -297,21 +308,22 @@
             const tbody = document.getElementById('tabla-analisis-body');
             tbody.innerHTML = "";
 
-            if(poolFilaAnalisis.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Fila vacía. Sube capturas o archivos.</td></tr>`;
+            let filaFiltrada = poolFilaAnalisis.filter(item => item.num.includes(busquedaFiltroText));
+
+            if(filaFiltrada.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Fila vacía o sin coincidencias.</td></tr>`;
                 return;
             }
 
-            poolFilaAnalisis.slice(0, 100).forEach(item => {
+            filaFiltrada.slice(0, 60).forEach((item, index) => {
                 const tr = document.createElement('tr');
-                let botonBanear = item.clase === "blacklist"
-                    ? `<span style="color:var(--rojo-ban); font-size:11px;">🔒 Bloqueado</span>`
-                    : `<button class="btn-ban" onclick="banearDesdeFilaAnálisis('${item.num}')">🚫 BAN</button>`;
-
                 tr.innerHTML = `
                     <td style="${item.clase === 'blacklist' ? 'text-decoration:line-through; color:var(--texto-gris);' : ''}">+${item.num}</td>
                     <td><span class="badge-status ${item.clase}">${item.texto}</span></td>
-                    <td style="text-align: right;">${botonBanear}</td>
+                    <td style="text-align: right;">
+                        <button class="btn-accion-tabla edit" onclick="editarNumeroFila(${index})">✏️</button>
+                        <button class="btn-accion-tabla del" onclick="eliminarNumeroFila(${index})">❌</button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -321,20 +333,87 @@
             const tbody = document.getElementById('tabla-listos-body');
             tbody.innerHTML = "";
 
-            if(poolContactosAprobadosLote.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Ningún envío en marcha.</td></tr>`;
+            let listaGrupoActivo = colasPorGrupo[grupoPestanaActiva];
+            let listaFiltrada = listaGrupoActivo.filter(item => item.num.includes(busquedaFiltroText));
+
+            if(listaFiltrada.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Sin números en esta pestaña.</td></tr>`;
                 return;
             }
 
-            poolContactosAprobadosLote.slice(-100).reverse().forEach(item => {
+            listaFiltrada.forEach((item, index) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>+${item.num}</td>
                     <td><span class="badge-status ready">${item.status}</span></td>
-                    <td style="text-align: right;"><button class="btn-ban" onclick="banearDesdeAprobados('${item.num}')">🚫 BAN</button></td>
+                    <td style="text-align: right;">
+                        <button class="btn-accion-tabla edit" onclick="editarNumeroGrupo(${grupoPestanaActiva}, ${index})">✏️</button>
+                        <button class="btn-accion-tabla ban" onclick="mandarABlacklistDesdeGrupo(${grupoPestanaActiva}, ${index})" title="Mandar a Blacklist">🚫</button>
+                        <button class="btn-accion-tabla del" onclick="eliminarNumeroGrupo(${grupoPestanaActiva}, ${index})">❌</button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
+
+            // Actualizar contadores visuales en las pestañas
+            for(let g=0; g<4; g++) {
+                document.getElementById(`badge-g${g}`).innerText = colasPorGrupo[g].length;
+            }
+        }
+
+        // ACCIONES INDIVIDUALES: EDICIÓN Y BORRADO
+        function editarNumeroFila(idx) {
+            let nuevo = prompt("Modificar número de fila:", poolFilaAnalisis[idx].num);
+            if(nuevo) {
+                poolFilaAnalisis[idx].num = nuevo.replace(/\D/g, '');
+                renderizarTablaAnalisis();
+            }
+        }
+
+        function eliminarNumeroFila(idx) {
+            poolFilaAnalisis.splice(idx, 1);
+            actualizarContadoresUI();
+            renderizarTablaAnalisis();
+        }
+
+        function editarNumeroGrupo(grupoIdx, idx) {
+            let nuevo = prompt("Modificar número asignado:", colasPorGrupo[grupoIdx][idx].num);
+            if(nuevo) {
+                colasPorGrupo[grupoIdx][idx].num = nuevo.replace(/\D/g, '');
+                renderizarTablaListos();
+            }
+        }
+
+        function eliminarNumeroGrupo(grupoIdx, idx) {
+            colasPorGrupo[grupoIdx].splice(idx, 1);
+            actualizarContadoresUI();
+            renderizarTablaListos();
+        }
+
+        function mandarABlacklistDesdeGrupo(grupoIdx, idx) {
+            let targetNum = colasPorGrupo[grupoIdx][idx].num;
+            blacklistSet.add(targetNum);
+            localStorage.setItem('nexa_blacklist_v10', JSON.stringify(Array.from(blacklistSet)));
+            colasPorGrupo[grupoIdx].splice(idx, 1);
+            alert(`+${targetNum} fue movido a la Lista Negra permanente.`);
+            actualizarContadoresUI();
+            renderizarTablaListos();
+        }
+
+        function cambiarPestanaGrupo(idx) {
+            grupoPestanaActiva = idx;
+            const pes = document.querySelectorAll('.pestana-grupo');
+            pes.forEach((p, i) => {
+                if(i === idx) p.classList.add('activa');
+                else p.classList.remove('activa');
+            });
+            renderizarTablaListos();
+        }
+
+        function filtrarBusquedaGlobal() {
+            busquedaFiltroText = document.getElementById('input-buscador-global').value.trim();
+            renderizarTablaAnalisis();
+            renderizarTablaListos();
         }
 
         function anexarAAnalisisManual() {
@@ -345,36 +424,34 @@
             else if (num.length === 10) num = '52' + num;
 
             if ((num.length === 12 || num.length === 13) && num.startsWith('52')) {
-                let diagnostico = "valido";
-                let textoDiag = "Válido";
-
-                if (blacklistSet.has(num)) { diagnostico = "blacklist"; textoDiag = "Blacklist"; }
-                else if (historicoEnviadosSet.has(num)) { diagnostico = "repetido"; textoDiag = "Ya Enviado Histórico"; }
-
-                poolFilaAnalisis.unshift({ num: num, clase: diagnostico, texto: textoDiag });
+                if (historicoEnviadosSet.has(num)) {
+                    alert("Este número ya fue procesado históricamente.");
+                    return;
+                }
+                poolFilaAnalisis.unshift({ num: num, clase: "valido", texto: "Válido" });
                 input.value = "";
                 actualizarContadoresUI();
                 renderizarTablaAnalisis();
-            } else {
-                alert("Formato inválido.");
             }
         }
 
+        // FLUJO DE DISTRIBUCIÓN EQUITATIVA INDEPENDIENTE
         async function aprobarYDispararInmediato() {
             if(ejecutandoEnvio) return;
 
-            let temporalesAprobados = [];
-            poolFilaAnalisis.forEach(item => {
+            let totalValidos = 0;
+            poolFilaAnalisis.forEach((item, index) => {
                 if(item.clase === "valido" && !historicoEnviadosSet.has(item.num)) {
-                    temporalesAprobados.push(item.num);
-                    poolContactosAprobadosLote.push({ num: item.num, status: "En cola" });
+                    // Distribución equitativa equitativa inmediata por índice
+                    let grupoDestino = totalValidos % 4;
+                    colasPorGrupo[grupoDestino].push({ num: item.num, status: "En cola" });
+                    totalValidos++;
                 }
             });
 
-            if(temporalesAprobados.length === 0) {
+            if(totalValidos === 0) {
                 poolFilaAnalisis = [];
                 renderizarTablaAnalisis();
-                actualizarContadoresUI();
                 return;
             }
 
@@ -383,98 +460,88 @@
             renderizarTablaListos();
             actualizarContadoresUI();
 
-            await procesarColaDeEnviosMasivos(temporalesAprobados);
+            await iniciarSecuenciaDespachoMoto();
         }
 
-        // CONTROL ASÍNCRONO MANOS LIBRES FIABLE
-        async function procesarColaDeEnviosMasivos(listaDeNumeros) {
+        async function iniciarSecuenciaDespachoMoto() {
             ejecutandoEnvio = true;
-            let total = listaDeNumeros.length;
             const triggerAnchor = document.getElementById('anchor-trigger-automatico');
 
-            for(let i = 0; i < total; i++) {
-                let celular = listaDeNumeros[i];
-                let itemUI = poolContactosAprobadosLote.find(el => el.num === celular);
-                if(itemUI) itemUI.status = "Procesando...";
-                renderizarTablaListos();
+            // Recorrer los grupos de manera balanceada en ráfagas intercaladas
+            let activos = true;
+            let cicloIndex = 0;
 
-                // Distribución matemática Round-Robin exacta
-                let grupoAsignado = LISTADO_GRUPOS[i % LISTADO_GRUPOS.length];
-                let plantillaMensaje = OPCIONES_MENSAJES[Math.floor(Math.random() * OPCIONES_MENSAJES.length)];
-                let textoFinal = plantillaMensaje + " " + grupoAsignado.link;
-                
-                // Forzamos la apertura nativa de la API de WhatsApp sin abrir pestañas colaterales
-                let urlCompleta = `https://wa.me/${celular}?text=${encodeURIComponent(textoFinal)}`;
-                
-                document.getElementById('txt-envio-estado').innerText = `Enviando a: +${celular} (${grupoAsignado.nombre})`;
-                
-                // REDIRECCIÓN DIRECTA PARA ASEGURAR PASO DEL INTENT EN SEGUNDO PLANO / BLOQUEO
-                triggerAnchor.setAttribute('href', urlCompleta);
-                triggerAnchor.click(); 
+            while(activos) {
+                activos = false;
+                for(let g = 0; g < 4; g++) {
+                    let colaActual = colasPorGrupo[g];
+                    // Buscar el primer elemento que aún esté "En cola"
+                    let itemAEnviar = colaActual.find(el => el.status === "En cola");
 
-                historicoEnviadosSet.add(celular);
-                localStorage.setItem('nexa_enviados_historico', JSON.stringify(Array.from(historicoEnviadosSet)));
+                    if(itemAEnviar) {
+                        activos = true;
+                        itemAEnviar.status = "Procesando...";
+                        renderizarTablaListos();
 
-                if(itemUI) itemUI.status = `Enviado a ${grupoAsignado.nombre} ✓`;
-                renderizarTablaListos();
-                actualizarContadoresUI();
+                        let celular = itemAEnviar.num;
+                        let grupoAsignado = LISTADO_GRUPOS[g];
+                        let plantillaMensaje = OPCIONES_MENSAJES[Math.floor(Math.random() * OPCIONES_MENSAJES.length)];
+                        let textoFinal = plantillaMensaje + " " + grupoAsignado.link;
+                        let urlCompleta = `https://wa.me/${celular}?text=${encodeURIComponent(textoFinal)}`;
 
-                // ESPERA DE TIEMPO EXTENDIDA TOTALMENTE AUTOMATIZADA PARA PROTEGER TU CUENTA MIENTRAS MANEJAS
-                if(i < total - 1) {
-                    // Rango extendido aleatorio aumentado para mitigar bloqueos: 25s a 45s
-                    let delayAleatorio = Math.floor(Math.random() * (45000 - 25000 + 1)) + 25000;
-                    let segundosRestantes = Math.round(delayAleatorio / 1000);
-                    let baseSegundos = segundosRestantes;
+                        document.getElementById('txt-envio-estado').innerText = `Despachando a +${celular} ➡️ [${grupoAsignado.nombre}]`;
+                        
+                        // INYECCIÓN DE INTENT DIRECTO
+                        triggerAnchor.setAttribute('href', urlCompleta);
+                        triggerAnchor.click();
 
-                    while(segundosRestantes > 0) {
-                        document.getElementById('barra-envio').style.width = `${(segundosRestantes / baseSegundos) * 100}%`;
-                        document.getElementById('txt-envio-timer').innerText = `Automático: Próximo disparo en ${segundosRestantes}s`;
-                        await new Promise(r => setTimeout(r, 1000));
-                        segundosRestantes--;
+                        // CONSOLIDACIÓN INMEDIATA PARA EVITAR DUPLICADOS ANTES DEL DELAY
+                        historicoEnviadosSet.add(celular);
+                        localStorage.setItem('nexa_enviados_historico', JSON.stringify(Array.from(historicoEnviadosSet)));
+
+                        itemAEnviar.status = "Despachado ✓";
+                        renderizarTablaListos();
+                        actualizarContadoresUI();
+
+                        // DELAY ROBUSTO ALEATORIO PARA MANEJO CON MANOS LIBRES (25s a 45s)
+                        let delayAleatorio = Math.floor(Math.random() * (45000 - 25000 + 1)) + 25000;
+                        let segundosRestantes = Math.round(delayAleatorio / 1000);
+                        let baseSegundos = segundosRestantes;
+
+                        while(segundosRestantes > 0) {
+                            document.getElementById('barra-envio').style.width = `${(segundosRestantes / baseSegundos) * 100}%`;
+                            document.getElementById('txt-envio-timer').innerText = `Ruta Activa: Próximo envío automático en ${segundosRestantes}s`;
+                            await new Promise(r => setTimeout(r, 1000));
+                            segundosRestantes--;
+                        }
                     }
                 }
             }
 
-            document.getElementById('txt-envio-estado').innerText = "Ciclo completo manos libres finalizado.";
+            document.getElementById('txt-envio-estado').innerText = "Todo el lote fue distribuido equitativamente de forma automática.";
             document.getElementById('barra-envio').style.width = "100%";
             document.getElementById('txt-envio-timer').innerText = "✓";
             ejecutandoEnvio = false;
         }
 
-        function banearDesdeFilaAnálisis(num) {
-            blacklistSet.add(num);
-            localStorage.setItem('nexa_blacklist_v10', JSON.stringify(Array.from(blacklistSet)));
-            let el = poolFilaAnalisis.find(item => item.num === num);
-            if(el) { el.clase = "blacklist"; el.texto = "Blacklist"; }
-            actualizarContadoresUI();
-            renderizarTablaAnalisis();
-        }
-
-        function banearDesdeAprobados(num) {
-            blacklistSet.add(num);
-            localStorage.setItem('nexa_blacklist_v10', JSON.stringify(Array.from(blacklistSet)));
-            poolContactosAprobadosLote = poolContactosAprobadosLote.filter(item => item.num !== num);
-            actualizarContadoresUI();
-            renderizarTablaListos();
-        }
-
         function limpiarHistorialDeduplicacion() {
-            if(confirm("¿Borrar historial permanente?")) {
+            if(confirm("¿Borrar memoria de duplicados histórica?")) {
                 historicoEnviadosSet.clear();
                 localStorage.removeItem('nexa_enviados_historico');
-                poolContactosAprobadosLote = [];
+                colasPorGrupo = [[], [], [], []];
                 actualizarContadoresUI();
                 renderizarTablaListos();
             }
         }
 
         function actualizarContadoresUI() {
+            let sumaListos = colasPorGrupo.reduce((acc, curr) => acc + curr.length, 0);
             document.getElementById('c-fila').innerText = poolFilaAnalisis.length;
-            document.getElementById('c-unicos').innerText = poolContactosAprobadosLote.length;
+            document.getElementById('c-unicos').innerText = sumaListos;
             document.getElementById('c-blacklist').innerText = blacklistSet.size;
             document.getElementById('c-historico').innerText = historicoEnviadosSet.size;
             document.getElementById('txt-total-fila').innerText = `${poolFilaAnalisis.length} ítems`;
-            document.getElementById('txt-total-listos').innerText = `${poolContactosAprobadosLote.length} procesados`;
+            document.getElementById('txt-total-listos').innerText = `${sumaListos} en colas`;
         }
 
         function updateLecturaProgreso(txt, pct) {

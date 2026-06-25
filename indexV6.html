@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexaEngine V15.4 - Full Automation & Random Throttling</title>
+    <title>NexaEngine V15.6 - Mass Image Selection Fix</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
@@ -80,8 +80,8 @@
 <body>
 
     <div>
-        <h1>NexaEngine V15.4 Pro</h1>
-        <div class="version-tag">Auto-Trigger & Variable Random Delays Activated</div>
+        <h1>NexaEngine V15.6 Pro</h1>
+        <div class="version-tag">Auto-Trigger & Mass Selection Multi-Images</div>
     </div>
 
     <a id="anchor-trigger-automatico" target="_blank"></a>
@@ -123,9 +123,9 @@
     </div>
 
     <div class="tarjeta-acciones">
-        <input type="file" id="input-universal-masivo" multiple accept="image/*,.txt,.csv,.json" style="display: none;">
+        <input type="file" id="input-universal-masivo" multiple accept="image/*" style="display: none;">
         <div class="btn-carpeta" onclick="document.getElementById('input-universal-masivo').click()">
-            📥 CARGAR MÚLTIPLE (SELECCIONAR IMÁGENES O ARCHIVOS)
+            📥 CARGAR MÚLTIPLE (SELECCIONAR +100 IMÁGENES O CAPTURAS)
         </div>
 
         <div class="seccion-manual">
@@ -183,7 +183,6 @@
     </div>
 
     <script>
-        // Enlace oficial de tu campaña asignado directamente al disparador
         const WHATSAPP_LINK_CAMPANA = "https://chat.whatsapp.com/KQFECehvFsKA66vJiJtkqq";
         
         const OPCIONES_MENSAJES = [
@@ -232,7 +231,9 @@
                     try {
                         const worker = await obtenerOcrWorker();
                         const { data: { text } } = await worker.recognize(archivoActual);
-                        const extraidos = text.match(/(?:52)?\d{10}/g) || [];
+                        
+                        let textoLimpioDeEspacios = text.replace(/[\s\t\n\r]/g, '');
+                        const extraidos = textoLimpioDeEspacios.match(/(?:52)?\d{10}/g) || [];
                         inyectarFilaAnalisisBatch(extraidos);
                     } catch (err) {
                         console.error("Error en OCR:", err);
@@ -240,7 +241,8 @@
                 } else {
                     try {
                         const textoCompleto = await archivoActual.text();
-                        const extraidos = textoCompleto.match(/(?:52)?\d{10}/g) || [];
+                        let textoLimpioDeEspacios = textoCompleto.replace(/[\s\t\n\r]/g, '');
+                        const extraidos = textoLimpioDeEspacios.match(/(?:52)?\d{10}/g) || [];
                         inyectarFilaAnalisisBatch(extraidos);
                     } catch (err) {
                         console.error("Error en lectura:", err);
@@ -394,7 +396,6 @@
                 
                 document.getElementById('txt-envio-estado').innerText = `Enviando invitación (${i+1}/${total}) a: +${celular}`;
                 
-                // DISPARO AUTOMÁTICO AL ANCHOR
                 triggerAnchor.setAttribute('href', urlCompleta);
                 triggerAnchor.click(); 
 
@@ -405,7 +406,6 @@
                 renderizarTablaListos();
                 actualizarContadoresUI();
 
-                // TEMPORIZADOR COMPLETAMENTE ALEATORIO ENTRE DISPAROS (15s a 35s)
                 if(i < total - 1) {
                     let delayAleatorio = Math.floor(Math.random() * (35000 - 15000 + 1)) + 15000;
                     let segundosRestantes = Math.round(delayAleatorio / 1000);

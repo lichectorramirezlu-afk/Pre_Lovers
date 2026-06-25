@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexaEngine V15.6 - Mass Image Selection Fix</title>
+    <title>NexaEngine V15.9 - Hands-Free Moto Rider Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
@@ -50,6 +50,9 @@
         .tarjeta-acciones { background-color: var(--bg-tarjetas); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 12px; border: 1px solid #1f1f26; }
         .btn-carpeta { background: #1c1c24; border: 2px dashed #33333f; padding: 20px; border-radius: 8px; text-align: center; color: var(--texto-gris); cursor: pointer; font-size: 14px; font-weight: bold; border-color: var(--rosa-nexa); color: var(--rosa-nexa); }
 
+        .seccion-info-grupos { background: #1c1c24; padding: 12px; border-radius: 8px; border: 1px solid #2c2c38; font-size: 12px; }
+        .seccion-info-grupos div { color: var(--texto-gris); margin-top: 4px; font-family: monospace; }
+
         .seccion-manual { display: flex; gap: 8px; }
         .seccion-manual input { flex: 1; background: #1c1c24; border: 1px solid #2c2c38; color: #fff; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 14px; }
         .btn-add-manual { background: #1c1c24; color: var(--verde-exito); border: 1px solid rgba(0,255,102,0.3); padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
@@ -80,11 +83,11 @@
 <body>
 
     <div>
-        <h1>NexaEngine V15.6 Pro</h1>
-        <div class="version-tag">Auto-Trigger & Mass Selection Multi-Images</div>
+        <h1>NexaEngine V15.9 Pro</h1>
+        <div class="version-tag">Hands-Free Mode & Equitable Round-Robin Active</div>
     </div>
 
-    <a id="anchor-trigger-automatico" target="_blank"></a>
+    <a id="anchor-trigger-automatico" target="_self"></a>
 
     <div class="dashboard-grid">
         <div class="tarjeta-stat">
@@ -107,14 +110,14 @@
 
     <div class="tarjeta-progreso">
         <div class="progreso-header">
-            <span id="txt-lectura-estado">Procesador Universal: Esperando Capturas o Archivos...</span>
+            <span id="txt-lectura-estado">Procesador Universal: Esperando Capturas...</span>
             <span id="txt-lectura-pct" style="font-weight: bold; color: var(--verde-exito);">0%</span>
         </div>
         <div class="contenedor-barra" style="margin-bottom: 10px;">
             <div id="barra-lectura" class="barra-fill"></div>
         </div>
         <div class="progreso-header">
-            <span id="txt-envio-estado">Módulo de Lanzamiento Directo Automatizado</span>
+            <span id="txt-envio-estado">Módulo Manos Libres en Espera</span>
             <span id="txt-envio-timer" style="font-weight: bold; color: var(--rosa-nexa);">0s</span>
         </div>
         <div class="contenedor-barra">
@@ -123,9 +126,14 @@
     </div>
 
     <div class="tarjeta-acciones">
+        <div class="seccion-info-grupos">
+            <span style="font-weight: bold; color: var(--rosa-nexa); text-transform: uppercase; font-size: 11px;">🔄 Distribución Equitativa Automatizada:</span>
+            <div>1. Las Tachitas | 2. Las Monalisas | 3. Pura Hieloka | 4. El Punto</div>
+        </div>
+
         <input type="file" id="input-universal-masivo" multiple accept="image/*" style="display: none;">
         <div class="btn-carpeta" onclick="document.getElementById('input-universal-masivo').click()">
-            📥 CARGAR MÚLTIPLE (SELECCIONAR +100 IMÁGENES O CAPTURAS)
+            📥 CARGAR MÚLTIPLE (SELECCIONAR IMÁGENES O CAPTURAS)
         </div>
 
         <div class="seccion-manual">
@@ -155,7 +163,7 @@
                 </table>
             </div>
             <div class="wrapper-botones-disparo">
-                <button class="btn-aprobar" onclick="aprobarYDispararInmediato()">✅ Aprobar e Iniciar Envíos en Automático</button>
+                <button class="btn-aprobar" onclick="aprobarYDispararInmediato()">✅ APROBAR E INICIAR CICLO AUTOMÁTICO MANOS LIBRES</button>
                 <button class="btn-reset" onclick="limpiarHistorialDeduplicacion()" title="Borrar memoria histórica de números enviados">Borrar Historial 🗑️</button>
             </div>
         </div>
@@ -183,7 +191,12 @@
     </div>
 
     <script>
-        const WHATSAPP_LINK_CAMPANA = "https://chat.whatsapp.com/KQFECehvFsKA66vJiJtkqq";
+        const LISTADO_GRUPOS = [
+            { nombre: "Las Tachitas", link: "https://chat.whatsapp.com/KRZz9ifAZqv862krlBA6sb" },
+            { nombre: "Las Monalisas", link: "https://chat.whatsapp.com/FCocForvuiQ8o1fptTKnt5" },
+            { nombre: "Pura Hieloka", link: "https://chat.whatsapp.com/EqacdMxS0MHGNAh9ILbpxw" },
+            { nombre: "El Punto", link: "https://chat.whatsapp.com/BqYLHpPeP7rCsTell6EAfS" }
+        ];
         
         const OPCIONES_MENSAJES = [
             "Hola, te dejo la invitación para unirte a nuestro grupo oficial exclusivo de NexaLovers. Este será el grupo responsable de asignarte tu usuario y contraseña gratuito para que hagas tu chamba más fácil 😜",
@@ -220,18 +233,17 @@
             if(archivos.length === 0) return;
 
             let totalArchivos = archivos.length;
-            updateLecturaProgreso(`Analizando lote de ${totalArchivos} archivos...`, 0);
+            updateLecturaProgreso("Analizando archivos...", 0);
 
             for (let i = 0; i < totalArchivos; i++) {
                 let archivoActual = archivos[i];
                 let porcentajeLote = Math.round((i / totalArchivos) * 100);
-                updateLecturaProgreso(`Procesando (${i + 1}/${totalArchivos}): ${archivoActual.name}`, porcentajeLote);
+                updateLecturaProgreso(`Procesando (${i + 1}/${totalArchivos})`, porcentajeLote);
 
                 if (archivoActual.type.startsWith('image/')) {
                     try {
                         const worker = await obtenerOcrWorker();
                         const { data: { text } } = await worker.recognize(archivoActual);
-                        
                         let textoLimpioDeEspacios = text.replace(/[\s\t\n\r]/g, '');
                         const extraidos = textoLimpioDeEspacios.match(/(?:52)?\d{10}/g) || [];
                         inyectarFilaAnalisisBatch(extraidos);
@@ -344,15 +356,12 @@
                 actualizarContadoresUI();
                 renderizarTablaAnalisis();
             } else {
-                alert("Formato inválido. Ingresa un número de 10 dígitos puros.");
+                alert("Formato inválido.");
             }
         }
 
         async function aprobarYDispararInmediato() {
-            if(ejecutandoEnvio) {
-                alert("Ya hay una secuencia de envío ejecutándose en segundo plano.");
-                return;
-            }
+            if(ejecutandoEnvio) return;
 
             let temporalesAprobados = [];
             poolFilaAnalisis.forEach(item => {
@@ -363,7 +372,6 @@
             });
 
             if(temporalesAprobados.length === 0) {
-                alert("No hay registros 'Válidos' nuevos para procesar en esta lista.");
                 poolFilaAnalisis = [];
                 renderizarTablaAnalisis();
                 actualizarContadoresUI();
@@ -378,6 +386,7 @@
             await procesarColaDeEnviosMasivos(temporalesAprobados);
         }
 
+        // CONTROL ASÍNCRONO MANOS LIBRES FIABLE
         async function procesarColaDeEnviosMasivos(listaDeNumeros) {
             ejecutandoEnvio = true;
             let total = listaDeNumeros.length;
@@ -385,42 +394,48 @@
 
             for(let i = 0; i < total; i++) {
                 let celular = listaDeNumeros[i];
-                
                 let itemUI = poolContactosAprobadosLote.find(el => el.num === celular);
-                if(itemUI) itemUI.status = "Abriendo...";
+                if(itemUI) itemUI.status = "Procesando...";
                 renderizarTablaListos();
 
+                // Distribución matemática Round-Robin exacta
+                let grupoAsignado = LISTADO_GRUPOS[i % LISTADO_GRUPOS.length];
                 let plantillaMensaje = OPCIONES_MENSAJES[Math.floor(Math.random() * OPCIONES_MENSAJES.length)];
-                let textoFinal = plantillaMensaje + " " + WHATSAPP_LINK_CAMPANA;
+                let textoFinal = plantillaMensaje + " " + grupoAsignado.link;
+                
+                // Forzamos la apertura nativa de la API de WhatsApp sin abrir pestañas colaterales
                 let urlCompleta = `https://wa.me/${celular}?text=${encodeURIComponent(textoFinal)}`;
                 
-                document.getElementById('txt-envio-estado').innerText = `Enviando invitación (${i+1}/${total}) a: +${celular}`;
+                document.getElementById('txt-envio-estado').innerText = `Enviando a: +${celular} (${grupoAsignado.nombre})`;
                 
+                // REDIRECCIÓN DIRECTA PARA ASEGURAR PASO DEL INTENT EN SEGUNDO PLANO / BLOQUEO
                 triggerAnchor.setAttribute('href', urlCompleta);
                 triggerAnchor.click(); 
 
                 historicoEnviadosSet.add(celular);
                 localStorage.setItem('nexa_enviados_historico', JSON.stringify(Array.from(historicoEnviadosSet)));
 
-                if(itemUI) itemUI.status = "Enviado ✓";
+                if(itemUI) itemUI.status = `Enviado a ${grupoAsignado.nombre} ✓`;
                 renderizarTablaListos();
                 actualizarContadoresUI();
 
+                // ESPERA DE TIEMPO EXTENDIDA TOTALMENTE AUTOMATIZADA PARA PROTEGER TU CUENTA MIENTRAS MANEJAS
                 if(i < total - 1) {
-                    let delayAleatorio = Math.floor(Math.random() * (35000 - 15000 + 1)) + 15000;
+                    // Rango extendido aleatorio aumentado para mitigar bloqueos: 25s a 45s
+                    let delayAleatorio = Math.floor(Math.random() * (45000 - 25000 + 1)) + 25000;
                     let segundosRestantes = Math.round(delayAleatorio / 1000);
                     let baseSegundos = segundosRestantes;
 
                     while(segundosRestantes > 0) {
                         document.getElementById('barra-envio').style.width = `${(segundosRestantes / baseSegundos) * 100}%`;
-                        document.getElementById('txt-envio-timer').innerText = `Espera Aleatoria Anti-Ban: ${segundosRestantes}s (Total Lote: ${baseSegundos}s)`;
+                        document.getElementById('txt-envio-timer').innerText = `Automático: Próximo disparo en ${segundosRestantes}s`;
                         await new Promise(r => setTimeout(r, 1000));
                         segundosRestantes--;
                     }
                 }
             }
 
-            document.getElementById('txt-envio-estado').innerText = "Secuencia completada. Todos los números nuevos fueron procesados.";
+            document.getElementById('txt-envio-estado').innerText = "Ciclo completo manos libres finalizado.";
             document.getElementById('barra-envio').style.width = "100%";
             document.getElementById('txt-envio-timer').innerText = "✓";
             ejecutandoEnvio = false;
@@ -444,7 +459,7 @@
         }
 
         function limpiarHistorialDeduplicacion() {
-            if(confirm("⚠ ATENCIÓN: Si borras el historial, el sistema olvidará qué números ya recibieron la invitación en el pasado.\n\n¿Deseas continuar?")) {
+            if(confirm("¿Borrar historial permanente?")) {
                 historicoEnviadosSet.clear();
                 localStorage.removeItem('nexa_enviados_historico');
                 poolContactosAprobadosLote = [];

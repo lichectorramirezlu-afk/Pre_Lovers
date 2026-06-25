@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexaEngine V6 Pro - 100% Autoclick & Delay</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <title>NexaEngine V7.2 - Stable Auto-Flow</title>
     <style>
         :root {
             --bg-principal: #0a0a0c;
@@ -71,17 +70,17 @@
         .btn-edit { color: var(--naranja-alerta); }
         .btn-del { color: #ff4a4a; }
         
-        /* Elemento invisible fantasma para simulación de clicks forzados sin bloqueo pop-up */
         #anchor-trigger-automatico { display: none; }
     </style>
 </head>
 <body>
 
     <div>
-        <h1>NexaEngine V6 Pro</h1>
-        <div class="version-tag">Engine v6.9 - Total Auto & Dynamic Delay</div>
+        <h1>NexaEngine V7 Pro</h1>
+        <div class="version-tag">Engine v7.2 - Bulletproof Auto Load</div>
     </div>
 
+    <!-- Elemento para ejecución de clicks invisibles programados -->
     <a id="anchor-trigger-automatico" target="_blank"></a>
 
     <div class="dashboard-grid">
@@ -117,10 +116,10 @@
     </div>
 
     <div class="tarjeta-acciones">
-        <input type="file" id="input-archivo-nativo" accept="*/*" multiple style="display: none;">
+        <input type="file" id="input-archivo-nativo" accept=".txt,.csv,.job" style="display: none;">
         
         <div class="btn-carpeta" onclick="document.getElementById('input-archivo-nativo').click()">
-            📂 SELECCIONAR CSV, JOB, ZIP O TXT <span>(MENU NATIVO)</span>
+            📂 SELECCIONAR CSV, JOB O TXT
         </div>
 
         <div class="seccion-manual">
@@ -144,7 +143,7 @@
                 </thead>
                 <tbody id="tabla-elementos-body">
                     <tr id="fila-vacia">
-                        <td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Base de datos vacía. Sube archivos o agrega manualmente.</td>
+                        <td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Base de datos vacía. Sube un archivo o anexa manualmente.</td>
                     </tr>
                 </tbody>
             </table>
@@ -160,110 +159,90 @@
         let contadorDuplicados = 0;
         let listaElementosUI = [];
 
-        document.getElementById('input-archivo-nativo').addEventListener('change', async (e) => {
-            const archivos = e.target.files;
-            if(!archivos.length) return;
+        // LECTORA NATIVA NUNCA-FALLA POR FILEREADER
+        document.getElementById('input-archivo-nativo').addEventListener('change', function(e) {
+            const archivoActual = e.target.files[0];
+            if(!archivoActual) return;
 
-            let totalArchivos = archivos.length;
+            updateLecturaProgreso(`Leyendo archivo: ${archivoActual.name}...`, 10);
+            alert(`Archivo detectado: ${archivoActual.name}\nIniciando extracción estable...`);
+
+            const lector = new FileReader();
             
-            for(let i = 0; i < totalArchivos; i++) {
-                let archivoActual = archivos[i];
-                updateLecturaProgreso(`Leyendo: ${archivoActual.name}`, 0);
-                
-                if(archivoActual.name.endsWith('.zip')) {
-                    try {
-                        const zip = await JSZip.loadAsync(archivoActual);
-                        let subArchivos = Object.values(zip.files).filter(f => !f.dir);
-                        for(let j = 0; j < subArchivos.length; j++) {
-                            let textoZip = await subArchivos[j].async("text");
-                            await procesarPorLineasAsync(textoZip, `${archivoActual.name}`);
-                        }
-                    } catch(err) { console.error(err); }
-                } else {
-                    let textoCompleto = await archivoActual.text();
-                    await procesarPorLineasAsync(textoCompleto, archivoActual.name);
-                }
-                updateLecturaProgreso(`Completado: ${archivoActual.name}`, 100);
-            }
-
-            renderizarTablaPaginada();
-            ejecutarResumenAlerta();
-        });
-
-        function procesarPorLineasAsync(texto, nombreOrigen) {
-            return new Promise((resolve) => {
-                const lineas = texto.split(/\r?\n/);
-                let lineasProcesadas = 0;
+            lector.onload = function(evt) {
+                const textoCompleto = evt.target.result;
+                const lineas = textoCompleto.split(/\r?\n/);
                 const totalLineas = lineas.length;
-                const tamañoLote = 250; 
+                
+                updateLecturaProgreso("Filtrando e indexando números...", 50);
 
-                function procesarSiguienteLote() {
-                    let limite = Math.min(lineasProcesadas + tamañoLote, totalLineas);
-                    
-                    for (let i = lineasProcesadas; i < limite; i++) {
-                        let lineaActual = lineas[i];
-                        if (!lineaActual.trim()) continue;
+                for(let i = 0; i < totalLineas; i++) {
+                    let lineaActual = lineas[i];
+                    if (!lineaActual.trim()) continue;
 
-                        const hallados = lineaActual.match(/\d{10,15}/g);
-                        if (hallados) {
-                            hallados.forEach(numeroEncontrado => {
-                                let numeroLimpio = numeroEncontrado;
+                    // Captura cadenas numéricas de entre 10 y 15 dígitos
+                    const hallados = lineaActual.match(/\d{10,15}/g);
+                    if (hallados) {
+                        hallados.forEach(numeroEncontrado => {
+                            let numeroLimpio = numeroEncontrado;
 
-                                if (numeroLimpio.startsWith('521')) {
-                                    numeroLimpio = '52' + numeroLimpio.substring(3);
-                                } else if (numeroLimpio.length === 10) {
-                                    numeroLimpio = '52' + numeroLimpio;
+                            // Formateo estricto del ecosistema
+                            if (numeroLimpio.startsWith('521')) {
+                                numeroLimpio = '52' + numeroLimpio.substring(3);
+                            } else if (numeroLimpio.length === 10) {
+                                numeroLimpio = '52' + numeroLimpio;
+                            }
+
+                            // Filtro estricto de 12 o 13 dígitos válidos con clave país
+                            if ((numeroLimpio.length === 12 || numeroLimpio.length === 13) && numeroLimpio.startsWith('52')) {
+                                if (registradosSet.has(numeroLimpio)) {
+                                    contadorDuplicados++;
+                                } else {
+                                    registradosSet.add(numeroLimpio);
+                                    poolContactosLimpios.push(numeroLimpio);
+                                    
+                                    listaElementosUI.push({
+                                        num: numeroLimpio,
+                                        clase: "valido",
+                                        texto: `Línea ${i+1} (${archivoActual.name.substring(0,10)})`
+                                    });
                                 }
-
-                                if ((numeroLimpio.length === 12 || numeroLimpio.length === 13) && numeroLimpio.startsWith('52')) {
-                                    if (registradosSet.has(numeroLimpio)) {
-                                        contadorDuplicados++;
-                                    } else {
-                                        registradosSet.add(numeroLimpio);
-                                        poolContactosLimpios.push(numeroLimpio);
-                                        
-                                        listaElementosUI.push({
-                                            num: numeroLimpio,
-                                            clase: "valido",
-                                            texto: `Línea ${i+1} (${nombreOrigen.substring(0,10)})`
-                                        });
-                                    }
-                                }
-                            });
-                        }
-                    }
-
-                    lineasProcesadas = limite;
-                    let pctProgreso = Math.round((lineasProcesadas / totalLineas) * 100);
-                    updateLecturaProgreso(`Filtrando líneas: ${lineasProcesadas}/${totalLineas}`, pctProgreso);
-
-                    if (lineasProcesadas < totalLineas) {
-                        setTimeout(procesarSiguienteLote, 1);
-                    } else {
-                        actualizarMetricasDiseno();
-                        resolve();
+                            }
+                        });
                     }
                 }
 
-                procesarSiguienteLote();
-            });
-        }
+                updateLecturaProgreso(`Procesado con éxito: ${archivoActual.name}`, 100);
+                actualizarMetricasDiseno();
+                renderizarTablaPaginada();
+                
+                alert(`📋 CARGA EXITOSA\n\nRegistros Únicos: ${registradosSet.size}\nRegistros Duplicados Ignorados: ${contadorDuplicados}`);
+            };
+
+            lector.onerror = function() {
+                alert("Ocurrió un error al intentar leer el archivo.");
+                updateLecturaProgreso("Error en lectura.", 0);
+            };
+
+            lector.readAsText(archivoActual);
+        });
 
         function renderizarTablaPaginada() {
             const tbody = document.getElementById('tabla-elementos-body');
             tbody.innerHTML = "";
 
             if(listaElementosUI.length === 0) {
-                tbody.innerHTML = `<tr id="fila-vacia"><td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Base de datos vacía. Sube archivos o agrega manualmente.</td></tr>`;
+                tbody.innerHTML = `<tr id="fila-vacia"><td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Base de datos vacía. Sube un archivo o anexa manualmente.</td></tr>`;
                 return;
             }
 
+            // Mostrar los últimos 100 agregados de forma inversa
             let muestra = listaElementosUI.slice(-100).reverse();
             muestra.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.id = `fila-${item.num}`;
                 tr.innerHTML = `
-                    <td class="num-celular">+${item.num}</td>
+                    <td style="font-family: monospace;">+${item.num}</td>
                     <td><span class="badge-status ${item.clase}">${item.texto}</span></td>
                     <td style="text-align: right;">
                         <button class="btn-accion-tabla btn-edit" onclick="editarFilaEnVivo('${item.num}')">✏️</button>
@@ -283,7 +262,7 @@
 
             if ((num.length === 12 || num.length === 13) && num.startsWith('52')) {
                 if (registradosSet.has(num)) {
-                    alert(`El número +${num} ya se encuentra cargado.`);
+                    alert(`El número +${num} ya se encuentra en la base de datos.`);
                 } else {
                     registradosSet.add(num);
                     poolContactosLimpios.push(num);
@@ -291,7 +270,7 @@
                     listaElementosUI.push({
                         num: num,
                         clase: "modificado",
-                        texto: "Añadido Manual"
+                        texto: "Anexo Manual"
                     });
                     
                     renderizarTablaPaginada();
@@ -299,7 +278,7 @@
                     input.value = "";
                 }
             } else {
-                alert("Formato no válido.");
+                alert("Formato Inválido. Asegúrate de ingresar un número válido de 10 dígitos o con prefijo.");
             }
         }
 
@@ -323,7 +302,7 @@
 
             if ((nuevoNum.length === 12 || nuevoNum.length === 13) && nuevoNum.startsWith('52')) {
                 if (registradosSet.has(nuevoNum) && nuevoNum !== num) {
-                    alert("Ese número ya existe.");
+                    alert("Ese número ya se encuentra registrado.");
                     return;
                 }
 
@@ -358,14 +337,10 @@
             document.getElementById('c-repetidos').innerText = contadorDuplicados;
         }
 
-        function ejecutarResumenAlerta() {
-            alert(`📋 COMPLETADO\n\nÚnicos: ${registradosSet.size}\nRepetidos: ${contadorDuplicados}`);
-        }
-
-        // SISTEMA AUTOMÁTICO COMPLETO CON DELAY VARIABLE DINÁMICO
+        // DISPARADOR 100% AUTOMÁTICO CON DELAY DINÁMICO IMPREDECIBLE ANTI-BAN
         async function lanzarSecuenciaInyeccion() {
             if(!poolContactosLimpios.length) {
-                alert("No hay registros en la base de datos.");
+                alert("No hay registros cargados.");
                 return;
             }
 
@@ -376,29 +351,29 @@
                 let celular = poolContactosLimpios[i];
                 let urlCompleta = `https://wa.me/${celular}?text=${encodeURIComponent(MSG_INVITACION + " " + WHATSAPP_LINK_CAMPANA)}`;
                 
-                document.getElementById('txt-envio-estado').innerText = `Disparando automatización: +${celular}`;
+                document.getElementById('txt-envio-estado').innerText = `Autoclick enviado a: +${celular}`;
                 
-                // Forzar la simulación del elemento clic directo utilizando el Anchor Fantasma
+                // Ejecución directa por simulación sintáctica sobre elemento anclado
                 triggerAnchor.setAttribute('href', urlCompleta);
                 triggerAnchor.click(); 
                 
                 document.getElementById('c-enviados').innerText = i + 1;
 
                 if(i < total - 1) {
-                    // CÁLCULO DE DELAY DINÁMICO DIFERENTE ENTRE ESTE ELEMENTO Y EL QUE SE VA A AGREGAR (20 a 30 segs)
+                    // Generación del delay aleatorio cambiante (Entre 20,000ms y 30,000ms)
                     let delayAleatorio = Math.floor(Math.random() * (30000 - 20000 + 1)) + 20000;
                     let segundosRestantes = Math.round(delayAleatorio / 1000);
                     let baseSegundos = segundosRestantes;
 
                     while(segundosRestantes > 0) {
                         document.getElementById('barra-envio').style.width = `${(segundosRestantes / baseSegundos) * 100}%`;
-                        document.getElementById('txt-envio-timer').innerText = `Intervalo Variable: ${segundosRestantes}s (Próximo diferente)`;
+                        document.getElementById('txt-envio-timer').innerText = `Espera cambiante: ${segundosRestantes}s`;
                         await new Promise(r => setTimeout(r, 1000));
                         segundosRestantes--;
                     }
                 }
             }
-            document.getElementById('txt-envio-estado').innerText = "Campaña masiva ejecutada al 100% con éxito.";
+            document.getElementById('txt-envio-estado').innerText = "Flujo masivo finalizado por completo.";
             document.getElementById('barra-envio').style.width = "100%";
             document.getElementById('txt-envio-timer').innerText = "✓";
         }

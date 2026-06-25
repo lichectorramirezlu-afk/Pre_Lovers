@@ -226,6 +226,7 @@
         let historicoEnviadosSet = new Set(JSON.parse(localStorage.getItem('nexa_enviados_historico')) || []);
         
         let poolFilaAnalisis = [];
+        let ocrWorker = null;
         
         // Estructuras separadas para el lote activo
         let colasPorGrupo = [[], [], [], []]; 
@@ -467,15 +468,12 @@
             ejecutandoEnvio = true;
             const triggerAnchor = document.getElementById('anchor-trigger-automatico');
 
-            // Recorrer los grupos de manera balanceada en ráfagas intercaladas
             let activos = true;
-            let cicloIndex = 0;
 
             while(activos) {
                 activos = false;
                 for(let g = 0; g < 4; g++) {
                     let colaActual = colasPorGrupo[g];
-                    // Buscar el primer elemento que aún esté "En cola"
                     let itemAEnviar = colaActual.find(el => el.status === "En cola");
 
                     if(itemAEnviar) {
@@ -491,11 +489,10 @@
 
                         document.getElementById('txt-envio-estado').innerText = `Despachando a +${celular} ➡️ [${grupoAsignado.nombre}]`;
                         
-                        // INYECCIÓN DE INTENT DIRECTO
                         triggerAnchor.setAttribute('href', urlCompleta);
                         triggerAnchor.click();
 
-                        // CONSOLIDACIÓN INMEDIATA PARA EVITAR DUPLICADOS ANTES DEL DELAY
+                        // CONSOLIDACIÓN INMEDIATA CONTRA DUPLICADOS
                         historicoEnviadosSet.add(celular);
                         localStorage.setItem('nexa_enviados_historico', JSON.stringify(Array.from(historicoEnviadosSet)));
 
@@ -503,7 +500,7 @@
                         renderizarTablaListos();
                         actualizarContadoresUI();
 
-                        // DELAY ROBUSTO ALEATORIO PARA MANEJO CON MANOS LIBRES (25s a 45s)
+                        // DELAY ROBUSTO ALEATORIO (25s a 45s)
                         let delayAleatorio = Math.floor(Math.random() * (45000 - 25000 + 1)) + 25000;
                         let segundosRestantes = Math.round(delayAleatorio / 1000);
                         let baseSegundos = segundosRestantes;

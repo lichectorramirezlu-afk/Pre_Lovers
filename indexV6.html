@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexaEngine V6 Pro - Full Smart Control</title>
+    <title>NexaEngine V6 Pro - Analizador y Extractor Quirúrgico</title>
+    <!-- Librería para apertura de archivos ZIP en tiempo real -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         :root {
@@ -14,6 +15,7 @@
             --texto-gris: #a0a0ab;
             --verde-exito: #00ff66;
             --azul-info: #61afef;
+            --naranja-alerta: #ff9233;
         }
 
         body {
@@ -45,10 +47,9 @@
             font-weight: bold;
             border: 1px solid rgba(255, 0, 127, 0.3);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
-        /* GRID DE CONTROL DE ESTADÍSTICAS */
+        /* GRID DE ESTADÍSTICAS */
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -63,23 +64,12 @@
             border: 1px solid #1f1f26;
         }
 
-        .stat-numero {
-            font-size: 26px;
-            font-weight: 800;
-            color: var(--rosa-nexa);
-        }
+        .stat-numero { font-size: 24px; font-weight: 800; color: var(--rosa-nexa); }
         .stat-numero.unicos { color: var(--verde-exito); }
         .stat-numero.repetidos { color: var(--azul-info); }
-        
-        .stat-etiqueta {
-            font-size: 11px;
-            color: var(--texto-gris);
-            margin-top: 4px;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
+        .stat-etiqueta { font-size: 11px; color: var(--texto-gris); margin-top: 4px; text-transform: uppercase; font-weight: 600; }
 
-        /* CARD DE PROGRESO Y TIMERS */
+        /* CARD DE CARGA Y PORCENTAJE */
         .tarjeta-progreso {
             background-color: var(--bg-tarjetas);
             border-radius: 12px;
@@ -92,7 +82,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
-            font-size: 13.5px;
+            font-size: 13px;
         }
 
         .contenedor-barra {
@@ -104,14 +94,11 @@
             border: 1px solid #252533;
         }
 
-        #barra-dinamica {
-            background: linear-gradient(90deg, #ff007f, #ff5e00);
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s linear;
-        }
+        .barra-fill { height: 100%; width: 0%; transition: width 0.2s ease-out; }
+        #barra-lectura { background: linear-gradient(90deg, #00ff66, #00b3ff); }
+        #barra-envio { background: linear-gradient(90deg, #ff007f, #ff5e00); }
 
-        /* SECCIÓN DE ACCIONES DIRECTAS */
+        /* SECCIÓN DE BOTONES */
         .tarjeta-acciones {
             background-color: var(--bg-tarjetas);
             border-radius: 12px;
@@ -122,38 +109,19 @@
             border: 1px solid #1f1f26;
         }
 
-        /* DISPARADOR TÁCTIL AUTOMÁTICO */
-        .zona-tactil-archivo {
+        .btn-carpeta {
             background: #1c1c24;
             border: 2px dashed #33333f;
-            padding: 22px 15px;
+            padding: 20px 15px;
             border-radius: 8px;
             text-align: center;
             color: var(--texto-gris);
             cursor: pointer;
             font-size: 14px;
-            transition: border-color 0.2s;
-        }
-        .zona-tactil-archivo:active {
-            border-color: var(--rosa-nexa);
-            background: #22222d;
-        }
-        .zona-tactil-archivo span {
-            color: var(--rosa-nexa);
             font-weight: bold;
         }
-
-        textarea {
-            background: #1c1c24;
-            color: #fff;
-            border: 1px solid #2c2c38;
-            padding: 10px;
-            border-radius: 6px;
-            height: 50px;
-            font-family: monospace;
-            font-size: 12px;
-            resize: none;
-        }
+        .btn-carpeta span { color: var(--rosa-nexa); }
+        .btn-carpeta:active { background: #22222d; border-color: var(--rosa-nexa); }
 
         button.btn-ejecutar {
             background: linear-gradient(135deg, #ff007f 0%, #b30059 100%);
@@ -165,36 +133,53 @@
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(255, 0, 127, 0.35);
-            transition: transform 0.1s;
-        }
-        button.btn-ejecutar:active {
-            transform: scale(0.98);
         }
 
-        /* CONSOLA DE MONITOREO */
-        .consola-wrapper {
+        /* MONITOR DE ELEMENTOS UNO A UNO */
+        .wrapper-tabla {
+            background-color: var(--bg-tarjetas);
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid #1f1f26;
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 8px;
         }
-        .consola-titulo {
-            font-size: 11px;
-            color: var(--texto-gris);
-            text-transform: uppercase;
-            font-weight: bold;
-            padding-left: 2px;
+
+        .tabla-titulo { font-size: 12px; color: var(--texto-gris); text-transform: uppercase; font-weight: bold; }
+        
+        .contenedor-tabla {
+            max-height: 180px;
+            overflow-y: auto;
+            border-radius: 6px;
+            border: 1px solid #1c1c24;
         }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            text-align: left;
+        }
+
+        th { background-color: #1c1c24; padding: 10px; color: var(--texto-gris); font-weight: 600; sticky: top; }
+        td { padding: 8px 10px; border-bottom: 1px solid #1c1c24; font-family: monospace; }
+        
+        .badge-status { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        .badge-status.valido { background: rgba(0, 255, 102, 0.15); color: var(--verde-exito); }
+        .badge-status.repetido { background: rgba(97, 175, 239, 0.15); color: var(--azul-info); }
+        .badge-status.corregido { background: rgba(255, 146, 51, 0.15); color: var(--naranja-alerta); }
+
         #consola-log {
-            background: #000000;
+            background: #000;
             border-radius: 8px;
-            padding: 12px;
-            font-family: "Courier New", monospace;
+            padding: 10px;
+            font-family: monospace;
             font-size: 11px;
             color: var(--verde-exito);
-            height: 130px;
+            max-height: 80px;
             overflow-y: auto;
             border: 1px solid #1a1a24;
-            line-height: 1.4;
         }
     </style>
 </head>
@@ -202,9 +187,10 @@
 
     <div>
         <h1>NexaEngine V6 Pro</h1>
-        <div class="version-tag">Engine v6.2 - Extractor Inteligente</div>
+        <div class="version-tag">Análisis Quirúrgico y Despliegue Directo</div>
     </div>
 
+    <!-- DASHBOARD ESTADÍSTICO -->
     <div class="dashboard-grid">
         <div class="tarjeta-stat">
             <div id="c-unicos" class="stat-numero unicos">0</div>
@@ -220,177 +206,206 @@
         </div>
     </div>
 
+    <!-- MONITOR DE LECTURA Y CARGA (PORCENTAJES) -->
     <div class="tarjeta-progreso">
         <div class="progreso-header">
-            <span id="txt-estado-motor">Esperando archivo base...</span>
-            <span id="txt-timer-seguro" style="color: var(--rosa-nexa); font-weight: bold;">0s</span>
+            <span id="txt-lectura-estado">Análisis de Archivo: Esperando...</span>
+            <span id="txt-lectura-pct" style="font-weight: bold; color: var(--verde-exito);">0%</span>
+        </div>
+        <div class="contenedor-barra" style="margin-bottom: 12px;">
+            <div id="barra-lectura" class="barra-fill"></div>
+        </div>
+
+        <div class="progreso-header">
+            <span id="txt-envio-estado">Progreso de Envío Seguro...</span>
+            <span id="txt-envio-timer" style="font-weight: bold; color: var(--rosa-nexa);">0s</span>
         </div>
         <div class="contenedor-barra">
-            <div id="barra-dinamica"></div>
+            <div id="barra-envio" class="barra-fill"></div>
         </div>
     </div>
 
+    <!-- ACCIONES -->
     <div class="tarjeta-acciones">
-        <input type="file" id="archivo-selector" accept="*/*" multiple style="display: none;">
+        <input type="file" id="input-archivo-nativo" accept="*/*" multiple style="display: none;">
         
-        <div class="zona-tactil-archivo" onclick="document.getElementById('archivo-selector').click()">
-            📁 Toca aquí para abrir tus <span>ARCHIVOS</span><br>
-            <small style="color: #666; font-size: 11px; display: block; margin-top: 4px;">ZIP de MacroDroid, CSV, TXT, Excel o listas</small>
+        <div class="btn-carpeta" onclick="document.getElementById('input-archivo-nativo').click()">
+            📂 EXAMINAR CARPETAS Y ARCHIVOS <span>(MENÚ NATIVO)</span>
         </div>
-
-        <textarea id="cuadro-manual" placeholder="O pega un bloque de texto sucio con números mezclados aquí..."></textarea>
         
-        <button class="btn-ejecutar" onclick="lanzarInyeccionFlujo()">🚀 INICIAR FLUJO PROGRAMADO</button>
+        <button class="btn-ejecutar" onclick="lanzarSecuenciaInyeccion()">🚀 INICIAR FLUJO PROGRAMADO</button>
     </div>
 
-    <div class="consola-wrapper">
-        <div class="consola-titulo">Log del sistema en tiempo real</div>
-        <div id="consola-log">> Motor listo para extracción. Importa un archivo...</div>
+    <!-- DETALLE UNO A UNO DE ELEMENTOS EXTRAÍDOS -->
+    <div class="wrapper-tabla">
+        <div class="tabla-titulo">Elementos Extraídos Uno a Uno (En Tiempo Real)</div>
+        <div class="contenedor-tabla">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Número Extraído</th>
+                        <th>Origen / Filtro</th>
+                        <th>Estado Base</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-elementos-body">
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Ningún elemento procesado aún</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
+
+    <div id="consola-log">> Sistema en espera...</div>
 
     <script>
-        const GRUPO_WHATSAPP = "https://chat.whatsapp.com/KQFECehvFsKA66vJiJtkqq";
-        const MENSAJE_PLANTILLA = "Hola, te dejo la invitación para unirte a nuestro grupo oficial exclusivo de NexaLovers. Este será el grupo responsable de asignarte tu usuario y contraseña gratuito para que hagas tu chamba más fácil 😜";
+        const WHATSAPP_LINK_CAMPANA = "https://chat.whatsapp.com/KQFECehvFsKA66vJiJtkqq";
+        const MSG_INVITACION = "Hola, te dejo la invitación para unirte a nuestro grupo oficial exclusivo de NexaLovers. Este será el grupo responsable de asignarte tu usuario y contraseña gratuito para que hagas tu chamba más fácil 😜";
 
-        let poolContactosLimpios = [];
-        let setContactosUnicos = new Set();
-        let contadorRepetidos = 0;
+        let contactosBaseFinal = [];
+        let registradosSet = new Set();
+        let contadorDuplicados = 0;
 
-        // Listener para la captura y lectura automática al elegir archivos
-        document.getElementById('archivo-selector').addEventListener('change', async (event) => {
-            const archivosCargados = event.target.files;
-            if (!archivosCargados.length) return;
+        document.getElementById('input-archivo-nativo').addEventListener('change', async (e) => {
+            const archivos = e.target.files;
+            if(!archivos.length) return;
 
-            pushLog(`Detectando lote de importación de archivos (${archivosCargados.length})...`);
+            // Reiniciar interfaz para nueva carga limpia
+            document.getElementById('tabla-elementos-body').innerHTML = "";
+            contactosBaseFinal = [];
+            registradosSet.clear();
+            contadorDuplicados = 0;
+            actualizarMetricasDiseno();
+
+            let totalArchivos = archivos.length;
             
-            for (let archivo of archivosCargados) {
-                pushLog(`Leyendo datos de: ${archivo.name}`);
+            for(let i = 0; i < totalArchivos; i++) {
+                let archivoActual = archivos[i];
+                updateLecturaProgreso(`Analizando: ${archivoActual.name}`, Math.round(((i + 0.5) / totalArchivos) * 100));
+                
                 let textoExtraido = "";
-
-                if (archivo.name.endsWith('.zip') || archivo.type === "application/zip") {
+                if(archivoActual.name.endsWith('.zip')) {
                     try {
-                        const zipEstructura = await JSZip.loadAsync(archivo);
-                        for (let rutaFile of Object.keys(zipEstructura.files)) {
-                            if (!zipEstructura.files[rutaFile].dir) {
-                                textoExtraido += await zipEstructura.files[rutaFile].async("text") + "\n";
-                            }
+                        const zip = await JSZip.loadAsync(archivoActual);
+                        for(let f of Object.values(zip.files)) {
+                            if(!f.dir) textoExtraido += await f.async("text") + "\n";
                         }
-                    } catch (errorZip) {
-                        pushLog(`Error procesando ZIP interno: ${errorZip.message}`);
-                    }
+                    } catch(err) { logger(`Error ZIP: ${err.message}`); }
                 } else {
-                    textoExtraido = await archivo.text();
+                    textoExtraido = await archivoActual.text();
                 }
 
-                ejecutarMotorFiltroRegEx(textoExtraido);
+                procesarFiltroQuirurgico(textoExtraido, archivoActual.name);
+                updateLecturaProgreso(`Completado: ${archivoActual.name}`, Math.round(((i + 1) / totalArchivos) * 100));
             }
 
-            mostrarResumenFinalVentana();
+            ejecutarResumenAlerta();
         });
 
-        // Motor Inteligente de RegEx bajo tus especificaciones (limpieza 52/521 de México)
-        function ejecutarMotorFiltroRegEx(textoBruto) {
-            // Captura cadenas numéricas aisladas o continuas
-            const filtroBase = /(?:52|521)?\d{10}/g;
-            const hallazgos = textoBruto.match(filtroBase) || [];
+        function procesarFiltroQuirurgico(texto, nombreOrigen) {
+            const regexCelulares = /(?:52|521)?\d{10}/g;
+            const hallados = texto.match(regexCelulares) || [];
+            const tbody = document.getElementById('tabla-elementos-body');
 
-            hallazgos.forEach(numeroEncontrado => {
-                let digitosPuros = numeroEncontrado.replace(/\D/g, '');
+            if(hallados.length && tbody.rows[0]?.cells[0]?.colSpan === 3) {
+                tbody.innerHTML = ""; // Limpiar el mensaje por defecto
+            }
 
-                // Corrección forzada de clave redundante 521 -> 52
-                if (digitosPuros.startsWith('521')) {
-                    digitosPuros = '52' + digitosPuros.substring(3);
+            hallados.forEach(item => {
+                let numeroLimpio = item.replace(/\D/g, '');
+                let badgeClase = "valido";
+                let badgeTexto = "Nuevo Único";
+                let origenDetectado = "10 Dígitos (Auto-52)";
+
+                if (numeroLimpio.startsWith('521')) {
+                    numeroLimpio = '52' + numeroLimpio.substring(3);
+                    badgeClase = "corregido";
+                    badgeTexto = "Prefijo 521 Limpio";
+                    origenDetectado = "Filtro Corrección";
+                } else if (numeroLimpio.length === 10) {
+                    numeroLimpio = '52' + numeroLimpio;
+                } else {
+                    origenDetectado = "Internacional 12-13D";
                 }
-                // Si es un número local de 10 dígitos, añadirle el prefijo internacional
-                else if (digitosPuros.length === 10) {
-                    digitosPuros = '52' + digitosPuros;
-                }
 
-                // Filtrado estricto por longitud válida (12 o 13 dígitos arrancando con 52)
-                if ((digitosPuros.length === 12 || digitosPuros.length === 13) && digitosPuros.startsWith('52')) {
-                    if (setContactosUnicos.has(digitosPuros)) {
-                        contadorRepetidos++;
+                // Filtrado estricto bajo reglas de México
+                if ((numeroLimpio.length === 12 || numeroLimpio.length === 13) && numeroLimpio.startsWith('52')) {
+                    if (registradosSet.has(numeroLimpio)) {
+                        contadorDuplicados++;
+                        agregarFilaATabla(numeroLimpio, nombreOrigen, "repetido", "Duplicado Ignorado");
                     } else {
-                        setContactosUnicos.add(digitosPuros);
-                        poolContactosLimpios.push(digitosPuros);
+                        registradosSet.add(numeroLimpio);
+                        contactosBaseFinal.push(numeroLimpio);
+                        agregarFilaATabla(numeroLimpio, origenDetectado, badgeClase, badgeTexto);
                     }
                 }
             });
 
-            // Sincronización inmediata de datos en la interfaz
-            document.getElementById('c-unicos').innerText = setContactosUnicos.size;
-            document.getElementById('c-repetidos').innerText = contadorRepetidos;
+            actualizarMetricasDiseno();
         }
 
-        // Ventana emergente con reporte estadístico estructurado
-        function mostrarResumenFinalVentana() {
-            pushLog(`--- EXTRACCIÓN FINALIZADA ---`);
-            pushLog(`Total Registros Únicos: ${setContactosUnicos.size}`);
-            pushLog(`Total Registros Repetidos Descartados: ${contadorRepetidos}`);
-            
-            alert(`📋 RESUMEN DE EXTRACCIÓN NEXAENGINE\n\n✔ Contactos Nuevos (Únicos): ${setContactosUnicos.size}\n❌ Contactos Repetidos Duplicados: ${contadorRepetidos}\n\nEl sistema ya configuró la cola de envíos automáticamente.`);
+        function agregarFilaATabla(num, origen, claseBadge, textoBadge) {
+            const tbody = document.getElementById('tabla-elementos-body');
+            const fila = document.createElement('tr');
+            fila.innerHTML = `
+                <td>+${num}</td>
+                <td style="color: var(--texto-gris);">${origen}</td>
+                <td><span class="badge-status ${claseBadge}">${textoBadge}</span></td>
+            `;
+            tbody.insertBefore(fila, tbody.firstChild); // Ver los últimos añadidos arriba
         }
 
-        // Bucle síncronizado con retardos humanos variables (Anti-bloqueo)
-        async function lanzarInyeccionFlujo() {
-            // Absorber texto de la caja manual si el usuario pegó datos directos
-            const contenidoManual = document.getElementById('cuadro-manual').value;
-            if (contenidoManual.trim() !== "") {
-                pushLog("Procesando datos del cuadro de texto manual...");
-                ejecutarMotorFiltroRegEx(contenidoManual);
-                document.getElementById('cuadro-manual').value = ""; // Limpiar caja
-            }
+        function updateLecturaProgreso(txt, pct) {
+            document.getElementById('txt-lectura-estado').innerText = txt;
+            document.getElementById('txt-lectura-pct').innerText = `${pct}%`;
+            document.getElementById('barra-lectura').style.width = `${pct}%`;
+        }
 
-            if (!poolContactosLimpios.length) {
-                alert("No hay ningún contacto cargado en la memoria de la app. Primero importa un archivo.");
+        function actualizarMetricasDiseno() {
+            document.getElementById('c-unicos').innerText = registradosSet.size;
+            document.getElementById('c-repetidos').innerText = contadorDuplicados;
+        }
+
+        function ejecutarResumenAlerta() {
+            logger(`Extracción realizada. Únicos: ${registradosSet.size} | Repetidos: ${contadorDuplicados}`);
+            alert(`📈 INFORME TÉCNICO DE EXTRACCIÓN\n\n- Porcentaje de Lectura de Lote: 100%\n- Elementos Únicos Inyectados a la Base: ${registradosSet.size}\n- Elementos Duplicados Descartados: ${contadorDuplicados}\n\nLos números válidos han sido ordenados en la cola.`);
+        }
+
+        async function lanzarSecuenciaInyeccion() {
+            if(!contactosBaseFinal.length) {
+                alert("La base de datos está vacía. Por favor, selecciona primero un archivo válido.");
                 return;
             }
 
-            let totalEnvios = poolContactosLimpios.length;
-            pushLog(`Iniciando secuencia de inyección automatizada para ${totalEnvios} contactos únicos...`);
-
-            for (let indice = 0; indice < totalEnvios; indice++) {
-                let telefonoDestinatario = poolContactosLimpios[indice];
-                let textoFinalMensaje = `${MENSAJE_PLANTILLA} ${GRUPO_WHATSAPP}`;
-                let enlaceDestinoWhatsApp = `https://wa.me/${telefonoDestinatario}?text=${encodeURIComponent(textoFinalMensaje)}`;
-
-                document.getElementById('txt-estado-motor').innerText = `Enviando a: +${telefonoDestinatario}`;
+            let total = contactosBaseFinal.length;
+            for(let i = 0; i < total; i++) {
+                let celular = contactosBaseFinal[i];
+                let urlCompleta = `https://wa.me/${celular}?text=${encodeURIComponent(MSG_INVITACION + " " + WHATSAPP_LINK_CAMPANA)}`;
                 
-                // Disparo de pestaña controlada hacia WhatsApp
-                window.open(enlaceDestinoWhatsApp, '_blank');
+                document.getElementById('txt-envio-estado').innerText = `Enviando a: +${celular}`;
+                window.open(urlCompleta, '_blank');
+                document.getElementById('c-enviados').innerText = i + 1;
 
-                // Actualizar interfaz
-                document.getElementById('c-enviados').innerText = indice + 1;
+                if(i < total - 1) {
+                    let delay = Math.floor(Math.random() * (45000 - 25000 + 1)) + 25000;
+                    let segs = Math.round(delay / 1000);
+                    let baseSegs = segs;
 
-                // Si quedan más números en cola, activar el delay variable protector
-                if (indice < totalEnvios - 1) {
-                    // Retardo aleatorio paramétrico entre 25,000ms y 45,000ms
-                    let milisegundosEspera = Math.floor(Math.random() * (45000 - 25000 + 1)) + 25000;
-                    let contadorSegundos = Math.round(milisegundosEspera / 1000);
-                    let tiempoBaseEstatico = contadorSegundos;
-
-                    while (contadorSegundos > 0) {
-                        let porcentajeProgreso = (contadorSegundos / tiempoBaseEstatico) * 100;
-                        document.getElementById('barra-dinamica').style.width = `${porcentajeProgreso}%`;
-                        document.getElementById('txt-timer-seguro').innerText = `${contadorSegundos}s`;
-                        
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                        contadorSegundos--;
+                    while(segs > 0) {
+                        document.getElementById('barra-envio').style.width = `${(segs / baseSegs) * 100}%`;
+                        document.getElementById('txt-envio-timer').innerText = `${segs}s`;
+                        await new Promise(r => setTimeout(r, 1000));
+                        segs--;
                     }
                 }
             }
-
-            document.getElementById('txt-estado-motor').innerText = "Flujo terminado.";
-            document.getElementById('barra-dinamica').style.width = "100%";
-            document.getElementById('txt-timer-seguro').innerText = "✓";
-            pushLog("¡Secuencia terminada con éxito!");
-            alert("Inyección de campaña finalizada con éxito.");
+            document.getElementById('txt-envio-estado').innerText = "Campaña finalizada de forma segura.";
+            document.getElementById('barra-envio').style.width = "100%";
         }
 
-        function pushLog(mensajeLog) {
-            const consolaElemento = document.getElementById('consola-log');
-            consolaElemento.innerHTML += `<br>> ${mensajeLog}`;
-            consolaElemento.scrollTop = consolaElemento.scrollHeight;
+        function logger(m) {
+            document.getElementById('consola-log').innerText = `> ${m}`;
         }
     </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexaEngine V9.5 - Historial Completo & Blacklist</title>
+    <title>NexaEngine V10.0 - Queue & Analysis System</title>
     <style>
         :root {
             --bg-principal: #0a0a0c;
@@ -43,12 +43,11 @@
         .progreso-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
         .contenedor-barra { background-color: #1c1c24; border-radius: 6px; height: 10px; width: 100%; overflow: hidden; border: 1px solid #252533; }
         .barra-fill { height: 100%; width: 0%; transition: width 0.1s linear; }
-        #barra-lectura { background: linear-gradient(90deg, #00ff66, #00b3ff); }
+        #barra-lectura { background: linear-gradient(90deg, #00ff66, #ff9233); }
         #barra-envio { background: linear-gradient(90deg, #ff007f, #ff5e00); }
 
         .tarjeta-acciones { background-color: var(--bg-tarjetas); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 12px; border: 1px solid #1f1f26; }
         .btn-carpeta { background: #1c1c24; border: 2px dashed #33333f; padding: 15px; border-radius: 8px; text-align: center; color: var(--texto-gris); cursor: pointer; font-size: 13px; font-weight: bold; }
-        .btn-carpeta span { color: var(--rosa-nexa); }
         .btn-screenshot { border: 2px dashed rgba(0, 255, 102, 0.3) !important; color: var(--texto-blanco) !important; }
         .btn-screenshot span { color: var(--verde-exito) !important; }
 
@@ -57,10 +56,12 @@
         .btn-add-manual { background: #1c1c24; color: var(--verde-exito); border: 1px solid rgba(0,255,102,0.3); padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
         button.btn-ejecutar { background: linear-gradient(135deg, #ff007f 0%, #b30059 100%); color: var(--texto-blanco); border: none; padding: 15px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 0, 127, 0.35); }
+        button.btn-aprobar { background: #1c3d27; color: var(--verde-exito); border: 1px solid var(--verde-exito); padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; font-size: 12px; }
 
+        .wrapper-secciones { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .wrapper-tabla { background-color: var(--bg-tarjetas); border-radius: 12px; padding: 12px; border: 1px solid #1f1f26; display: flex; flex-direction: column; gap: 8px; }
-        .tabla-titulo { font-size: 12px; color: var(--texto-gris); text-transform: uppercase; font-weight: bold; }
-        .contenedor-tabla { max-height: 250px; overflow-y: auto; border-radius: 6px; border: 1px solid #1c1c24; }
+        .tabla-titulo { font-size: 12px; color: var(--texto-gris); text-transform: uppercase; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .contenedor-tabla { max-height: 280px; overflow-y: auto; border-radius: 6px; border: 1px solid #1c1c24; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
         th { background-color: #1c1c24; padding: 10px; color: var(--texto-gris); font-weight: 600; position: sticky; top: 0; z-index: 10; }
         td { padding: 8px 10px; border-bottom: 1px solid #1c1c24; font-family: monospace; vertical-align: middle; }
@@ -68,14 +69,12 @@
         .badge-status { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
         .badge-status.valido { background: rgba(0, 255, 102, 0.1); color: var(--verde-exito); }
         .badge-status.repetido { background: rgba(97, 175, 239, 0.1); color: var(--azul-info); }
-        .badge-status.modificado { background: rgba(255, 146, 51, 0.1); color: var(--naranja-alerta); }
         .badge-status.blacklist { background: rgba(255, 74, 74, 0.15); color: var(--rojo-ban); }
+        .badge-status.ready { background: rgba(255, 0, 127, 0.15); color: var(--rosa-nexa); }
 
-        .btn-accion-tabla { background: none; border: none; font-size: 14px; cursor: pointer; padding: 2px 6px; margin-left: 4px; }
-        .btn-ban { color: var(--rojo-ban); border: 1px solid rgba(255, 74, 74, 0.3); background: rgba(255, 74, 74, 0.05); padding: 3px 8px; border-radius: 4px; font-size: 11px; }
-
+        .btn-ban { color: var(--rojo-ban); border: 1px solid rgba(255, 74, 74, 0.3); background: rgba(255, 74, 74, 0.05); padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
         .preview-box { display: none; text-align: center; background: #1c1c24; padding: 10px; border-radius: 8px; border: 1px solid #2f2f3d; }
-        .preview-box img { max-height: 120px; border-radius: 6px; }
+        .preview-box img { max-height: 100px; border-radius: 6px; }
 
         #anchor-trigger-automatico { display: none; }
     </style>
@@ -83,24 +82,24 @@
 <body>
 
     <div>
-        <h1>NexaEngine V9.5 Pro</h1>
-        <div class="version-tag">Engine v9.5 - Vault Storage & Permanent Blacklist</div>
+        <h1>NexaEngine V10.0 Pro</h1>
+        <div class="version-tag">Engine v10.0 - Anti-Freeze Analyser Queue</div>
     </div>
 
     <a id="anchor-trigger-automatico" target="_blank"></a>
 
     <div class="dashboard-grid">
         <div class="tarjeta-stat">
-            <div id="c-unicos" class="stat-numero unicos">0</div>
-            <div class="stat-etiqueta">Activos</div>
+            <div id="c-fila" class="stat-numero azul" style="color:var(--azul-info)">0</div>
+            <div class="stat-etiqueta">En Fila Análisis</div>
         </div>
         <div class="tarjeta-stat">
-            <div id="c-repetidos" class="stat-numero repetidos">0</div>
-            <div class="stat-etiqueta">Duplicados</div>
+            <div id="c-unicos" class="stat-numero unicos">0</div>
+            <div class="stat-etiqueta">Aprobados Listo</div>
         </div>
         <div class="tarjeta-stat">
             <div id="c-blacklist" class="stat-numero ban">0</div>
-            <div class="stat-etiqueta">Baneados</div>
+            <div class="stat-etiqueta">En Blacklist</div>
         </div>
         <div class="tarjeta-stat">
             <div id="c-enviados" class="stat-numero">0</div>
@@ -110,7 +109,7 @@
 
     <div class="tarjeta-progreso">
         <div class="progreso-header">
-            <span id="txt-lectura-estado">Filtro de Carga: En espera</span>
+            <span id="txt-lectura-estado">Fila de Carga Asíncrona: En espera</span>
             <span id="txt-lectura-pct" style="font-weight: bold; color: var(--verde-exito);">0%</span>
         </div>
         <div class="contenedor-barra" style="margin-bottom: 10px;">
@@ -128,12 +127,12 @@
     <div class="tarjeta-acciones">
         <input type="file" id="input-archivo-nativo" style="display: none;">
         <div class="btn-carpeta" onclick="document.getElementById('input-archivo-nativo').click()">
-            📂 SELECCIONAR BASE DE DATOS (JSON, TXT, CSV, JOB)
+            📂 CARGAR ELEMENTOS A LA FILA DE ANÁLISIS
         </div>
 
         <input type="file" id="input-screenshot-nativo" accept="image/*" style="display: none;">
         <div class="btn-carpeta btn-screenshot" onclick="document.getElementById('input-screenshot-nativo').click()">
-            📸 ADJUNTAR SCREENSHOT / IMAGEN <span>(OPCIONAL)</span>
+            📸 ADJUNTAR SCREENSHOT / IMAGEN DE CAMPAÑA
         </div>
 
         <div id="box-preview-img" class="preview-box">
@@ -141,31 +140,55 @@
         </div>
 
         <div class="seccion-manual">
-            <input type="tel" id="input-manual-num" placeholder="Agregar o Banear número manual">
-            <button class="btn-add-manual" onclick="agregarNumeroManualDirecto(false)">＋ ACTIVO</button>
-            <button class="btn-add-manual" style="color:var(--rojo-ban); border-color:rgba(255,74,74,0.3)" onclick="agregarNumeroManualDirecto(true)">🚫 BANEAR</button>
+            <input type="tel" id="input-manual-num" placeholder="Agregar directo a Fila">
+            <button class="btn-add-manual" onclick="anexarAAnalisisManual()">＋ ENCOLA</button>
         </div>
         
-        <button class="btn-ejecutar" onclick="lanzarSecuenciaInyeccion()">🚀 INICIAR FLUJO PROGRAMADO</button>
+        <button class="btn-ejecutar" onclick="lanzarSecuenciaInyeccion()">🚀 DISPARAR ENVÍO PROGRAMADO</button>
     </div>
 
-    <div class="wrapper-tabla">
-        <div class="tabla-titulo">Historial y Clasificación General (Últimos 100)</div>
-        <div class="contenedor-tabla">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Número</th>
-                        <th>Estado / Clasificación</th>
-                        <th style="text-align: right;">Acción</th>
-                    </tr>
-                </thead>
-                <tbody id="tabla-elementos-body">
-                    <tr id="fila-vacia">
-                        <td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Base de datos vacía.</td>
-                    </tr>
-                </tbody>
-            </table>
+    <div class="wrapper-secciones">
+        <div class="wrapper-tabla">
+            <div class="tabla-titulo">
+                <span>⏳ FILA DE ANÁLISIS PREVIO</span>
+                <span id="txt-total-fila" style="color:var(--azul-info)">0 ítems</span>
+            </div>
+            <div class="contenedor-tabla">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Número</th>
+                            <th>Diagnóstico</th>
+                            <th style="text-align: right;">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-analisis-body">
+                        <tr><td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Fila vacía. Sube una base para analizar.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <button class="btn-aprobar" onclick="aprobarFilaHaciaEnvio()">✅ APROBAR REGISTROS VÁLIDOS A LISTA DE ENVÍO</button>
+        </div>
+
+        <div class="wrapper-tabla">
+            <div class="tabla-titulo">
+                <span>🎯 LISTOS PARA ENVÍO (APROBADOS)</span>
+                <span id="txt-total-listos" style="color:var(--verde-exito)">0 listos</span>
+            </div>
+            <div class="contenedor-tabla">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Número</th>
+                            <th>Estatus</th>
+                            <th style="text-align: right;">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-listos-body">
+                        <tr><td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Sin números aprobados todavía.</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -173,12 +196,10 @@
         const WHATSAPP_LINK_CAMPANA = "https://chat.whatsapp.com/KQFECehvFsKA66vJiJtkqq";
         const MSG_INVITACION = "Hola, te dejo la invitación para unirte a nuestro grupo oficial exclusivo de NexaLovers. Este será el grupo responsable de asignarte tu usuario y contraseña gratuito para que hagas tu chamba más fácil 😜";
 
-        // Persistencia resguardada en LocalStorage para la Lista Negra
-        let blacklistSet = new Set(JSON.parse(localStorage.getItem('nexa_blacklist_v9')) || []);
-        let poolContactosLimpios = [];
-        let registradosSet = new Set();
-        let contadorDuplicados = 0;
-        let listaElementosUI = [];
+        let blacklistSet = new Set(JSON.parse(localStorage.getItem('nexa_blacklist_v10')) || []);
+        let poolFilaAnalisis = []; // Elementos actualmente en revisión
+        let poolContactosAprobados = []; // Elementos listos para wa.me
+        let registradosEnvioSet = new Set(); 
         let screenshotDataUrl = ""; 
 
         document.getElementById('input-screenshot-nativo').addEventListener('change', function(e) {
@@ -193,93 +214,119 @@
             lectorImagen.readAsDataURL(archivoImagen);
         });
 
+        // PROCESADOR SEGMENTADO ASÍNCRONO ANTI-CONGELAMIENTO
         document.getElementById('input-archivo-nativo').addEventListener('change', function(e) {
             const archivoActual = e.target.files[0];
             if(!archivoActual) return;
 
-            updateLecturaProgreso("Analizando archivo...", 10);
+            updateLecturaProgreso("Leyendo archivo...", 5);
             const lector = new FileReader();
             
-            lector.onload = function(evt) {
+            lector.onload = async function(evt) {
                 const textoCompleto = evt.target.result.trim();
-                let numerosEncontrados = textoCompleto.match(/\d{10,15}/g) || [];
+                let encontrados = textoCompleto.match(/\d{10,15}/g) || [];
+                
+                if(encontrados.length === 0) {
+                    alert("No se hallaron números en el archivo.");
+                    updateLecturaProgreso("En espera", 0);
+                    return;
+                }
 
-                numerosEncontrados.forEach((numeroE, index) => {
-                    let numeroLimpio = numeroE;
-                    if (numeroLimpio.startsWith('521')) numeroLimpio = '52' + numeroLimpio.substring(3);
-                    else if (numeroLimpio.length === 10) numeroLimpio = '52' + numeroLimpio;
+                poolFilaAnalisis = []; // Limpiamos fila de análisis previa
+                updateLecturaProgreso(`Analizando ${encontrados.length} elementos en ráfagas...`, 20);
 
-                    if ((numeroLimpio.length === 12 || numeroLimpio.length === 13) && numeroLimpio.startsWith('52')) {
-                        // REGLA: Si ya está en la Blacklist guardada, se conserva en la UI pero NO se procesa para envío
-                        if (blacklistSet.has(numeroLimpio)) {
-                            if (!registradosSet.has(numeroLimpio)) {
-                                registradosSet.add(numeroLimpio);
-                                listaElementosUI.push({ num: numeroLimpio, clase: "blacklist", texto: "Blacklist" });
+                // Dividir en bloques de 200 elementos para evitar que el navegador se clave
+                let tamanoBloque = 200;
+                for (let i = 0; i < encontrados.length; i += tamanoBloque) {
+                    let bloque = encontrados.slice(i, i + tamanoBloque);
+                    
+                    bloque.forEach(numeroRaw => {
+                        let num = numeroRaw;
+                        if (num.startsWith('521')) num = '52' + num.substring(3);
+                        else if (num.length === 10) num = '52' + num;
+
+                        if ((num.length === 12 || num.length === 13) && num.startsWith('52')) {
+                            let diagnostico = "valido";
+                            let textoDiag = "Válido";
+
+                            if (blacklistSet.has(num)) {
+                                diagnostico = "blacklist";
+                                textoDiag = "Blacklist";
+                            } else if (registradosEnvioSet.has(num)) {
+                                diagnostico = "repetido";
+                                textoDiag = "Duplicado";
                             }
-                        } else if (registradosSet.has(numeroLimpio)) {
-                            contadorDuplicados++;
-                        } else {
-                            registradosSet.add(numeroLimpio);
-                            poolContactosLimpios.push(numeroLimpio);
-                            listaElementosUI.push({ num: numeroLimpio, clase: "valido", texto: "Activo" });
-                        }
-                    }
-                });
 
-                updateLecturaProgreso("Carga completada", 100);
-                actualizarMetricasDiseno();
-                renderizarTablaPaginada();
+                            // Evitar duplicados dentro de la misma fila de análisis visual
+                            if(!poolFilaAnalisis.some(item => item.num === num)) {
+                                poolFilaAnalisis.push({ num: num, clase: diagnostico, texto: textoDiag });
+                            }
+                        }
+                    });
+
+                    let pctProgreso = Math.round((i / encontrados.length) * 100);
+                    updateLecturaProgreso(`Clasificando fila: ${i} de ${encontrados.length}...`, pctProgreso);
+                    
+                    // Pequeña pausa milimétrica para dejar respirar a la interfaz del teléfono
+                    await new Promise(resolve => setTimeout(resolve, 1));
+                }
+
+                updateLecturaProgreso("Fila cargada y lista para revisión.", 100);
+                actualizarContadoresUI();
+                renderizarTablaAnalisis();
             };
             lector.readAsText(archivoActual);
         });
 
-        function renderizarTablaPaginada() {
-            const tbody = document.getElementById('tabla-elementos-body');
+        function renderizarTablaAnalisis() {
+            const tbody = document.getElementById('tabla-analisis-body');
             tbody.innerHTML = "";
 
-            if(listaElementosUI.length === 0) {
-                tbody.innerHTML = `<tr id="fila-vacia"><td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Base de datos vacía.</td></tr>`;
+            if(poolFilaAnalisis.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Fila vacía. Sube una base para analizar.</td></tr>`;
                 return;
             }
 
-            let muestra = listaElementosUI.slice(-100).reverse();
+            // Mostramos los últimos 100 cargados en la fila para máxima velocidad visual
+            let muestra = poolFilaAnalisis.slice(0, 100);
             muestra.forEach(item => {
                 const tr = document.createElement('tr');
-                tr.id = `fila-${item.num}`;
-                
-                let botonAccion = item.clase === "blacklist" 
+                let botonBanear = item.clase === "blacklist"
                     ? `<span style="color:var(--rojo-ban); font-size:11px;">🔒 Bloqueado</span>`
-                    : `<button class="btn-ban" onclick="cambiarABlacklist('${item.num}')">🚫 BANEAR</button>`;
+                    : `<button class="btn-ban" onclick="banearDesdeFilaAnálisis('${item.num}')">🚫 BAN</button>`;
 
                 tr.innerHTML = `
-                    <td style="${item.clase === 'blacklist' ? 'text-decoration: line-through; color: var(--texto-gris);' : ''}">+${item.num}</td>
+                    <td style="${item.clase === 'blacklist' ? 'text-decoration:line-through; color:var(--texto-gris);' : ''}">+${item.num}</td>
                     <td><span class="badge-status ${item.clase}">${item.texto}</span></td>
-                    <td style="text-align: right;">${botonAccion}</td>
+                    <td style="text-align: right;">${botonBanear}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // Mover un número a la lista negra sin borrarlo del historial visual
-        function cambiarABlacklist(num) {
-            blacklistSet.add(num);
-            localStorage.setItem('nexa_blacklist_v9', JSON.stringify(Array.from(blacklistSet)));
-            
-            // Remover del pool de envíos inmediatamentes
-            poolContactosLimpios = poolContactosLimpios.filter(item => item !== num);
-            
-            // Actualizar su estado en el registro visual
-            let elUI = listaElementosUI.find(item => item.num === num);
-            if(elUI) {
-                elUI.clase = "blacklist";
-                elUI.texto = "Blacklist";
+        function renderizarTablaListos() {
+            const tbody = document.getElementById('tabla-listos-body');
+            tbody.innerHTML = "";
+
+            if(poolContactosAprobados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Sin números aprobados todavía.</td></tr>`;
+                return;
             }
 
-            actualizarMetricasDiseno();
-            renderizarTablaPaginada();
+            let muestra = poolContactosAprobados.slice(-100).reverse();
+            muestra.forEach(num => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>+${num}</td>
+                    <td><span class="badge-status ready">Aprobado</span></td>
+                    <td style="text-align: right;"><button class="btn-ban" onclick="banearDesdeAprobados('${num}')">🚫 BAN</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
-        function agregarNumeroManualDirecto(esParaBlacklist) {
+        // AGREGAR NÚMERO MANUAL DIRECTAMENTE A LA FILA DE ANÁLISIS
+        function anexarAAnalisisManual() {
             const input = document.getElementById('input-manual-num');
             let num = input.value.replace(/\D/g, '');
 
@@ -287,35 +334,69 @@
             else if (num.length === 10) num = '52' + num;
 
             if ((num.length === 12 || num.length === 13) && num.startsWith('52')) {
-                if (esParaBlacklist) {
-                    blacklistSet.add(num);
-                    localStorage.setItem('nexa_blacklist_v9', JSON.stringify(Array.from(blacklistSet)));
-                    poolContactosLimpios = poolContactosLimpios.filter(item => item !== num);
-                    
-                    let existente = listaElementosUI.find(item => item.num === num);
-                    if (existente) {
-                        existente.clase = "blacklist";
-                        existente.texto = "Blacklist";
-                    } else {
-                        listaElementosUI.push({ num: num, clase: "blacklist", texto: "Blacklist" });
-                    }
-                } else {
-                    if (blacklistSet.has(num)) {
-                        alert("Este número está baneado. Si deseas usarlo, remuévelo primero.");
-                        return;
-                    }
-                    if (!registradosSet.has(num)) {
-                        registradosSet.add(num);
-                        poolContactosLimpios.push(num);
-                        listaElementosUI.push({ num: num, clase: "modificado", texto: "Manual" });
-                    }
-                }
-                renderizarTablaPaginada();
-                actualizarMetricasDiseno();
+                let diagnostico = "valido";
+                let textoDiag = "Válido";
+
+                if (blacklistSet.has(num)) { diagnostico = "blacklist"; textoDiag = "Blacklist"; }
+                else if (registradosEnvioSet.has(num)) { diagnostico = "repetido"; textoDiag = "Duplicado"; }
+
+                poolFilaAnalisis.unshift({ num: num, clase: diagnostico, texto: textoDiag });
                 input.value = "";
+                actualizarContadoresUI();
+                renderizarTablaAnalisis();
             } else {
                 alert("Formato Inválido.");
             }
+        }
+
+        // PROCESAR Y PASAR DE FILA A LISTO PARA ENVÍO
+        function aprobarFilaHaciaEnvio() {
+            let cont = 0;
+            poolFilaAnalisis.forEach(item => {
+                if(item.clase === "valido" && !registradosEnvioSet.has(item.num)) {
+                    registradosEnvioSet.add(item.num);
+                    poolContactosAprobados.push(item.num);
+                    cont++;
+                }
+            });
+
+            // Limpiamos la fila de análisis procesada
+            poolFilaAnalisis = [];
+            
+            alert(`Aprobación completada:\nSe movieron ${cont} números limpios al panel de envío.`);
+            actualizarContadoresUI();
+            renderizarTablaAnalisis();
+            renderizarTablaListos();
+        }
+
+        function banearDesdeFilaAnálisis(num) {
+            blacklistSet.add(num);
+            localStorage.setItem('nexa_blacklist_v10', JSON.stringify(Array.from(blacklistSet)));
+            
+            let el = poolFilaAnalisis.find(item => item.num === num);
+            if(el) { el.clase = "blacklist"; el.texto = "Blacklist"; }
+            
+            actualizarContadoresUI();
+            renderizarTablaAnalisis();
+        }
+
+        function banearDesdeAprobados(num) {
+            blacklistSet.add(num);
+            localStorage.setItem('nexa_blacklist_v10', JSON.stringify(Array.from(blacklistSet)));
+            
+            poolContactosAprobados = poolContactosAprobados.filter(item => item !== num);
+            registradosEnvioSet.delete(num);
+
+            actualizarContadoresUI();
+            renderizarTablaListos();
+        }
+
+        function actualizarContadoresUI() {
+            document.getElementById('c-fila').innerText = poolFilaAnalisis.length;
+            document.getElementById('c-unicos').innerText = poolContactosAprobados.length;
+            document.getElementById('c-blacklist').innerText = blacklistSet.size;
+            document.getElementById('txt-total-fila').innerText = `${poolFilaAnalisis.length} ítems`;
+            document.getElementById('txt-total-listos').innerText = `${poolContactosAprobados.length} listos`;
         }
 
         function updateLecturaProgreso(txt, pct) {
@@ -324,28 +405,22 @@
             document.getElementById('barra-lectura').style.width = `${pct}%`;
         }
 
-        function actualizarMetricasDiseno() {
-            document.getElementById('c-unicos').innerText = poolContactosLimpios.length;
-            document.getElementById('c-repetidos').innerText = contadorDuplicados;
-            document.getElementById('c-blacklist').innerText = blacklistSet.size;
-        }
-
-        // BUCLE ASÍNCRONO DE ENVÍO AUTOMÁTICO CON DELAY VARIABLE
+        // BUCE ASÍNCRONO DE AUTOCLICKS CON INTERVALO VARIABLE ANTI-BAN
         async function lanzarSecuenciaInyeccion() {
-            if(!poolContactosLimpios.length) {
-                alert("No hay registros activos para envío.");
+            if(!poolContactosAprobados.length) {
+                alert("No tienes números aprobados en la lista de envío.");
                 return;
             }
 
-            let total = poolContactosLimpios.length;
+            let total = poolContactosAprobados.length;
             const triggerAnchor = document.getElementById('anchor-trigger-automatico');
 
             for(let i = 0; i < total; i++) {
-                let celular = poolContactosLimpios[i];
+                let celular = poolContactosAprobados[i];
                 let textoFinal = MSG_INVITACION + " " + WHATSAPP_LINK_CAMPANA;
                 let urlCompleta = `https://wa.me/${celular}?text=${encodeURIComponent(textoFinal)}`;
                 
-                document.getElementById('txt-envio-estado').innerText = `Enviando Auto-Click: +${celular}`;
+                document.getElementById('txt-envio-estado').innerText = `Ejecutando click: +${celular}`;
                 
                 triggerAnchor.setAttribute('href', urlCompleta);
                 triggerAnchor.click(); 
@@ -359,13 +434,13 @@
 
                     while(segundosRestantes > 0) {
                         document.getElementById('barra-envio').style.width = `${(segundosRestantes / baseSegundos) * 100}%`;
-                        document.getElementById('txt-envio-timer').innerText = `Intervalo Variable: ${segundosRestantes}s`;
+                        document.getElementById('txt-envio-timer').innerText = `Delay dinámico: ${segundosRestantes}s`;
                         await new Promise(r => setTimeout(r, 1000));
                         segundosRestantes--;
                     }
                 }
             }
-            document.getElementById('txt-envio-estado').innerText = "Campaña procesada con éxito.";
+            document.getElementById('txt-envio-estado').innerText = "Secuencia de cola completada.";
             document.getElementById('barra-envio').style.width = "100%";
             document.getElementById('txt-envio-timer').innerText = "✓";
         }

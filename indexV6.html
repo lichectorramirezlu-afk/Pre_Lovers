@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexaEngine V6 Pro - Analizador y Extractor Quirúrgico</title>
-    <!-- Librería para apertura de archivos ZIP en tiempo real -->
+    <title>NexaEngine V6 Pro - Ultimate Control</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         :root {
@@ -21,7 +20,7 @@
         body {
             background-color: var(--bg-principal);
             color: var(--texto-blanco);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             margin: 0;
             padding: 15px;
             display: flex;
@@ -29,168 +28,57 @@
             gap: 15px;
         }
 
-        h1 {
-            font-size: 22px;
-            font-weight: 700;
-            margin: 10px 0 2px 0;
-            text-shadow: 0 0 10px rgba(255, 0, 127, 0.3);
-        }
+        h1 { font-size: 22px; margin: 5px 0 2px 0; text-shadow: 0 0 10px rgba(255, 0, 127, 0.3); }
+        .version-tag { font-size: 11px; background: rgba(255, 0, 127, 0.15); color: var(--rosa-nexa); padding: 2px 8px; border-radius: 20px; width: fit-content; font-weight: bold; text-transform: uppercase; }
 
-        .version-tag {
-            font-size: 11px;
-            background: rgba(255, 0, 127, 0.15);
-            color: var(--rosa-nexa);
-            padding: 2px 8px;
-            border-radius: 20px;
-            width: fit-content;
-            margin-bottom: 5px;
-            font-weight: bold;
-            border: 1px solid rgba(255, 0, 127, 0.3);
-            text-transform: uppercase;
-        }
-
-        /* GRID DE ESTADÍSTICAS */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-
-        .tarjeta-stat {
-            background-color: var(--bg-tarjetas);
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #1f1f26;
-        }
-
+        .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .tarjeta-stat { background-color: var(--bg-tarjetas); border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #1f1f26; }
         .stat-numero { font-size: 24px; font-weight: 800; color: var(--rosa-nexa); }
         .stat-numero.unicos { color: var(--verde-exito); }
         .stat-numero.repetidos { color: var(--azul-info); }
-        .stat-etiqueta { font-size: 11px; color: var(--texto-gris); margin-top: 4px; text-transform: uppercase; font-weight: 600; }
+        .stat-etiqueta { font-size: 11px; color: var(--texto-gris); text-transform: uppercase; font-weight: 600; margin-top: 4px; }
 
-        /* CARD DE CARGA Y PORCENTAJE */
-        .tarjeta-progreso {
-            background-color: var(--bg-tarjetas);
-            border-radius: 12px;
-            padding: 15px;
-            border: 1px solid #1f1f26;
-        }
-
-        .progreso-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            font-size: 13px;
-        }
-
-        .contenedor-barra {
-            background-color: #1c1c24;
-            border-radius: 6px;
-            height: 12px;
-            width: 100%;
-            overflow: hidden;
-            border: 1px solid #252533;
-        }
-
-        .barra-fill { height: 100%; width: 0%; transition: width 0.2s ease-out; }
+        .tarjeta-progreso { background-color: var(--bg-tarjetas); border-radius: 12px; padding: 15px; border: 1px solid #1f1f26; }
+        .progreso-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
+        .contenedor-barra { background-color: #1c1c24; border-radius: 6px; height: 10px; width: 100%; overflow: hidden; border: 1px solid #252533; }
+        .barra-fill { height: 100%; width: 0%; transition: width 0.1s linear; }
         #barra-lectura { background: linear-gradient(90deg, #00ff66, #00b3ff); }
         #barra-envio { background: linear-gradient(90deg, #ff007f, #ff5e00); }
 
-        /* SECCIÓN DE BOTONES */
-        .tarjeta-acciones {
-            background-color: var(--bg-tarjetas);
-            border-radius: 12px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            border: 1px solid #1f1f26;
-        }
-
-        .btn-carpeta {
-            background: #1c1c24;
-            border: 2px dashed #33333f;
-            padding: 20px 15px;
-            border-radius: 8px;
-            text-align: center;
-            color: var(--texto-gris);
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-        }
+        .tarjeta-acciones { background-color: var(--bg-tarjetas); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 12px; border: 1px solid #1f1f26; }
+        .btn-carpeta { background: #1c1c24; border: 2px dashed #33333f; padding: 18px 15px; border-radius: 8px; text-align: center; color: var(--texto-gris); cursor: pointer; font-size: 14px; font-weight: bold; }
         .btn-carpeta span { color: var(--rosa-nexa); }
-        .btn-carpeta:active { background: #22222d; border-color: var(--rosa-nexa); }
-
-        button.btn-ejecutar {
-            background: linear-gradient(135deg, #ff007f 0%, #b30059 100%);
-            color: var(--texto-blanco);
-            border: none;
-            padding: 16px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 0, 127, 0.35);
-        }
-
-        /* MONITOR DE ELEMENTOS UNO A UNO */
-        .wrapper-tabla {
-            background-color: var(--bg-tarjetas);
-            border-radius: 12px;
-            padding: 12px;
-            border: 1px solid #1f1f26;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .tabla-titulo { font-size: 12px; color: var(--texto-gris); text-transform: uppercase; font-weight: bold; }
         
-        .contenedor-tabla {
-            max-height: 180px;
-            overflow-y: auto;
-            border-radius: 6px;
-            border: 1px solid #1c1c24;
-        }
+        .seccion-manual { display: flex; gap: 8px; }
+        .seccion-manual input { flex: 1; background: #1c1c24; border: 1px solid #2c2c38; color: #fff; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 14px; }
+        .btn-add-manual { background: #1c1c24; color: var(--verde-exito); border: 1px solid rgba(0,255,102,0.3); padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-            text-align: left;
-        }
+        button.btn-ejecutar { background: linear-gradient(135deg, #ff007f 0%, #b30059 100%); color: var(--texto-blanco); border: none; padding: 15px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 0, 127, 0.35); }
 
-        th { background-color: #1c1c24; padding: 10px; color: var(--texto-gris); font-weight: 600; sticky: top; }
-        td { padding: 8px 10px; border-bottom: 1px solid #1c1c24; font-family: monospace; }
+        .wrapper-tabla { background-color: var(--bg-tarjetas); border-radius: 12px; padding: 12px; border: 1px solid #1f1f26; display: flex; flex-direction: column; gap: 8px; }
+        .tabla-titulo { font-size: 12px; color: var(--texto-gris); text-transform: uppercase; font-weight: bold; }
+        .contenedor-tabla { max-height: 250px; overflow-y: auto; border-radius: 6px; border: 1px solid #1c1c24; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+        th { background-color: #1c1c24; padding: 10px; color: var(--texto-gris); font-weight: 600; position: sticky; top: 0; z-index: 10; }
+        td { padding: 6px 10px; border-bottom: 1px solid #1c1c24; font-family: monospace; vertical-align: middle; }
         
         .badge-status { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
-        .badge-status.valido { background: rgba(0, 255, 102, 0.15); color: var(--verde-exito); }
-        .badge-status.repetido { background: rgba(97, 175, 239, 0.15); color: var(--azul-info); }
-        .badge-status.corregido { background: rgba(255, 146, 51, 0.15); color: var(--naranja-alerta); }
+        .badge-status.valido { background: rgba(0, 255, 102, 0.1); color: var(--verde-exito); }
+        .badge-status.repetido { background: rgba(97, 175, 239, 0.1); color: var(--azul-info); }
+        .badge-status.modificado { background: rgba(255, 146, 51, 0.1); color: var(--naranja-alerta); }
 
-        #consola-log {
-            background: #000;
-            border-radius: 8px;
-            padding: 10px;
-            font-family: monospace;
-            font-size: 11px;
-            color: var(--verde-exito);
-            max-height: 80px;
-            overflow-y: auto;
-            border: 1px solid #1a1a24;
-        }
+        .btn-accion-tabla { background: none; border: none; font-size: 14px; cursor: pointer; padding: 2px 6px; margin-left: 4px; }
+        .btn-edit { color: var(--naranja-alerta); }
+        .btn-del { color: #ff4a4a; }
     </style>
 </head>
 <body>
 
     <div>
         <h1>NexaEngine V6 Pro</h1>
-        <div class="version-tag">Análisis Quirúrgico y Despliegue Directo</div>
+        <div class="version-tag">Engine v6.5 - Anti-Freeze & Edit Mod</div>
     </div>
 
-    <!-- DASHBOARD ESTADÍSTICO -->
     <div class="dashboard-grid">
         <div class="tarjeta-stat">
             <div id="c-unicos" class="stat-numero unicos">0</div>
@@ -206,18 +94,16 @@
         </div>
     </div>
 
-    <!-- MONITOR DE LECTURA Y CARGA (PORCENTAJES) -->
     <div class="tarjeta-progreso">
         <div class="progreso-header">
-            <span id="txt-lectura-estado">Análisis de Archivo: Esperando...</span>
+            <span id="txt-lectura-estado">Filtro de Carga: En espera</span>
             <span id="txt-lectura-pct" style="font-weight: bold; color: var(--verde-exito);">0%</span>
         </div>
-        <div class="contenedor-barra" style="margin-bottom: 12px;">
+        <div class="contenedor-barra" style="margin-bottom: 10px;">
             <div id="barra-lectura" class="barra-fill"></div>
         </div>
-
         <div class="progreso-header">
-            <span id="txt-envio-estado">Progreso de Envío Seguro...</span>
+            <span id="txt-envio-estado">Cola de Envío Inteligente</span>
             <span id="txt-envio-timer" style="font-weight: bold; color: var(--rosa-nexa);">0s</span>
         </div>
         <div class="contenedor-barra">
@@ -225,45 +111,46 @@
         </div>
     </div>
 
-    <!-- ACCIONES -->
     <div class="tarjeta-acciones">
         <input type="file" id="input-archivo-nativo" accept="*/*" multiple style="display: none;">
         
         <div class="btn-carpeta" onclick="document.getElementById('input-archivo-nativo').click()">
-            📂 EXAMINAR CARPETAS Y ARCHIVOS <span>(MENÚ NATIVO)</span>
+            📂 SELECCIONAR CSV, JOB, ZIP O TXT <span>(MENU NATIVO)</span>
+        </div>
+
+        <div class="seccion-manual">
+            <input type="tel" id="input-manual-num" placeholder="Agregar número manualmente (Ej: 52... o 10D)">
+            <button class="btn-add-manual" onclick="agregarNumeroManualDirecto()">＋ ANEXAR</button>
         </div>
         
         <button class="btn-ejecutar" onclick="lanzarSecuenciaInyeccion()">🚀 INICIAR FLUJO PROGRAMADO</button>
     </div>
 
-    <!-- DETALLE UNO A UNO DE ELEMENTOS EXTRAÍDOS -->
     <div class="wrapper-tabla">
-        <div class="tabla-titulo">Elementos Extraídos Uno a Uno (En Tiempo Real)</div>
+        <div class="tabla-titulo">Registros Actuales en la Base de Datos</div>
         <div class="contenedor-tabla">
             <table>
                 <thead>
                     <tr>
-                        <th>Número Extraído</th>
-                        <th>Origen / Filtro</th>
-                        <th>Estado Base</th>
+                        <th>Número</th>
+                        <th>Estado / Origen</th>
+                        <th style="text-align: right;">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="tabla-elementos-body">
-                    <tr>
-                        <td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Ningún elemento procesado aún</td>
+                    <tr id="fila-vacia">
+                        <td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Base de datos vacía. Sube archivos o agrega manualmente.</td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
 
-    <div id="consola-log">> Sistema en espera...</div>
-
     <script>
         const WHATSAPP_LINK_CAMPANA = "https://chat.whatsapp.com/KQFECehvFsKA66vJiJtkqq";
         const MSG_INVITACION = "Hola, te dejo la invitación para unirte a nuestro grupo oficial exclusivo de NexaLovers. Este será el grupo responsable de asignarte tu usuario y contraseña gratuito para que hagas tu chamba más fácil 😜";
 
-        let contactosBaseFinal = [];
+        let poolContactosLimpios = []; // Lista ordenada para envío
         let registradosSet = new Set();
         let contadorDuplicados = 0;
 
@@ -271,18 +158,11 @@
             const archivos = e.target.files;
             if(!archivos.length) return;
 
-            // Reiniciar interfaz para nueva carga limpia
-            document.getElementById('tabla-elementos-body').innerHTML = "";
-            contactosBaseFinal = [];
-            registradosSet.clear();
-            contadorDuplicados = 0;
-            actualizarMetricasDiseno();
-
             let totalArchivos = archivos.length;
             
             for(let i = 0; i < totalArchivos; i++) {
                 let archivoActual = archivos[i];
-                updateLecturaProgreso(`Analizando: ${archivoActual.name}`, Math.round(((i + 0.5) / totalArchivos) * 100));
+                updateLecturaProgreso(`Leyendo: ${archivoActual.name}`, Math.round((i / totalArchivos) * 100));
                 
                 let textoExtraido = "";
                 if(archivoActual.name.endsWith('.zip')) {
@@ -291,69 +171,169 @@
                         for(let f of Object.values(zip.files)) {
                             if(!f.dir) textoExtraido += await f.async("text") + "\n";
                         }
-                    } catch(err) { logger(`Error ZIP: ${err.message}`); }
+                    } catch(err) { console.error(err); }
                 } else {
                     textoExtraido = await archivoActual.text();
                 }
 
-                procesarFiltroQuirurgico(textoExtraido, archivoActual.name);
+                // Ejecución segmentada asíncrona para evitar que se pasme la pantalla
+                await procesarTextoMasivoAsync(textoExtraido, archivoActual.name);
                 updateLecturaProgreso(`Completado: ${archivoActual.name}`, Math.round(((i + 1) / totalArchivos) * 100));
             }
 
             ejecutarResumenAlerta();
         });
 
-        function procesarFiltroQuirurgico(texto, nombreOrigen) {
-            const regexCelulares = /(?:52|521)?\d{10}/g;
-            const hallados = texto.match(regexCelulares) || [];
-            const tbody = document.getElementById('tabla-elementos-body');
+        // Escáner profundo carácter por carácter (Sin fallas en CSV, JOB o archivos sin espacios)
+        function procesarTextoMasivoAsync(texto, nombreOrigen) {
+            return new Promise((resolve) => {
+                // Busca cualquier secuencia de entre 10 y 15 dígitos seguidos
+                const regexProfundo = /\d{10,15}/g;
+                const hallados = texto.match(regexProfundo) || [];
+                
+                let index = 0;
+                const chunk = 300; // Procesa de 300 en 300 números para darle aire al procesador del teléfono
 
-            if(hallados.length && tbody.rows[0]?.cells[0]?.colSpan === 3) {
-                tbody.innerHTML = ""; // Limpiar el mensaje por defecto
-            }
+                function procesarBloque() {
+                    let hasta = Math.min(index + chunk, hallados.length);
+                    
+                    for (let i = index; i < hasta; i++) {
+                        let numeroLimpio = hallados[i];
 
-            hallados.forEach(item => {
-                let numeroLimpio = item.replace(/\D/g, '');
-                let badgeClase = "valido";
-                let badgeTexto = "Nuevo Único";
-                let origenDetectado = "10 Dígitos (Auto-52)";
+                        // Estandarización de claves estrictas de México (52 / 521)
+                        if (numeroLimpio.startsWith('521')) {
+                            numeroLimpio = '52' + numeroLimpio.substring(3);
+                        } else if (numeroLimpio.length === 10) {
+                            numeroLimpio = '52' + numeroLimpio;
+                        }
 
-                if (numeroLimpio.startsWith('521')) {
-                    numeroLimpio = '52' + numeroLimpio.substring(3);
-                    badgeClase = "corregido";
-                    badgeTexto = "Prefijo 521 Limpio";
-                    origenDetectado = "Filtro Corrección";
-                } else if (numeroLimpio.length === 10) {
-                    numeroLimpio = '52' + numeroLimpio;
-                } else {
-                    origenDetectado = "Internacional 12-13D";
-                }
+                        // Validación de longitud reglamentaria
+                        if ((numeroLimpio.length === 12 || numeroLimpio.length === 13) && numeroLimpio.startsWith('52')) {
+                            if (registradosSet.has(numeroLimpio)) {
+                                contadorDuplicados++;
+                            } else {
+                                registradosSet.add(numeroLimpio);
+                                poolContactosLimpios.push(numeroLimpio);
+                                agregarFilaUI(numeroLimpio, "valido", `Importado (${nombreOrigen})`);
+                            }
+                        }
+                    }
 
-                // Filtrado estricto bajo reglas de México
-                if ((numeroLimpio.length === 12 || numeroLimpio.length === 13) && numeroLimpio.startsWith('52')) {
-                    if (registradosSet.has(numeroLimpio)) {
-                        contadorDuplicados++;
-                        agregarFilaATabla(numeroLimpio, nombreOrigen, "repetido", "Duplicado Ignorado");
+                    index += chunk;
+                    if (index < hallados.length) {
+                        setTimeout(procesarBloque, 1); // Breve respiro al sistema para evitar congelamiento
                     } else {
-                        registradosSet.add(numeroLimpio);
-                        contactosBaseFinal.push(numeroLimpio);
-                        agregarFilaATabla(numeroLimpio, origenDetectado, badgeClase, badgeTexto);
+                        actualizarMetricasDiseno();
+                        resolve();
                     }
                 }
-            });
 
-            actualizarMetricasDiseno();
+                if(hallados.length > 0) {
+                    procesarBloque();
+                } else {
+                    resolve();
+                }
+            });
         }
 
-        function agregarFilaATabla(num, origen, claseBadge, textoBadge) {
+        // Agregar de forma manual un número a la base de datos
+        function agregarNumeroManualDirecto() {
+            const input = document.getElementById('input-manual-num');
+            let num = input.value.replace(/\D/g, '');
+
+            if (num.startsWith('521')) num = '52' + num.substring(3);
+            else if (num.length === 10) num = '52' + num;
+
+            if ((num.length === 12 || num.length === 13) && num.startsWith('52')) {
+                if (registradosSet.has(num)) {
+                    alert("Este número ya existe en la base actual.");
+                } else {
+                    registradosSet.add(num);
+                    poolContactosLimpios.push(num);
+                    agregarFilaUI(num, "modificado", "Añadido Manual");
+                    actualizarMetricasDiseno();
+                    input.value = "";
+                }
+            } else {
+                alert("Número inválido. Asegúrate de ingresar 10 dígitos locales o el formato con prefijo 52.");
+            }
+        }
+
+        // Renderizado de elementos uno a uno con herramientas de control en vivo
+        function agregarFilaUI(num, claseBadge, textoBadge) {
             const tbody = document.getElementById('tabla-elementos-body');
-            const fila = document.createElement('tr');
-            fila.innerHTML = `
-                <td>+${num}</td>
-                <td style="color: var(--texto-gris);">${origen}</td>
+            const filaVacia = document.getElementById('fila-vacia');
+            if (filaVacia) filaVacia.remove();
+
+            const tr = document.createElement('tr');
+            tr.id = `fila-${num}`;
+            tr.innerHTML = `
+                <td class="num-celular">+${num}</td>
                 <td><span class="badge-status ${claseBadge}">${textoBadge}</span></td>
+                <td style="text-align: right;">
+                    <button class="btn-accion-tabla btn-edit" onclick="editarFilaEnVivo('${num}')">✏️</button>
+                    <button class="btn-accion-tabla btn-del" onclick="eliminarFilaEnVivo('${num}')">🗑️</button>
+                </td>
             `;
-            tbody.insertBefore(fila, tbody.firstChild); // Ver los últimos añadidos arriba
+            tbody.insertBefore(tr, tbody.firstChild);
+        }
+
+        // Eliminar fila de la interfaz y de la base de datos
+        function eliminarFilaEnVivo(num) {
+            if(confirm(`¿Deseas eliminar el número +${num} de la lista de envío?`)) {
+                // Remover de memoria
+                registradosSet.delete(num);
+                poolContactosLimpios = poolContactosLimpios.filter(item => item !== num);
+                
+                // Remover de la UI
+                document.getElementById(`fila-${num}`).remove();
+                actualizarMetricasDiseno();
+                verificarTablaVacia();
+            }
+        }
+
+        // Modificar el número en caliente
+        function editarFilaEnVivo(num) {
+            let nuevoNum = prompt(`Modificar número +${num}:`, num);
+            if (!nuevoNum) return;
+            
+            nuevoNum = nuevoNum.replace(/\D/g, '');
+            if (nuevoNum.startsWith('521')) nuevoNum = '52' + nuevoNum.substring(3);
+            else if (nuevoNum.length === 10) nuevoNum = '52' + nuevoNum;
+
+            if ((nuevoNum.length === 12 || nuevoNum.length === 13) && nuevoNum.startsWith('52')) {
+                if (registradosSet.has(nuevoNum) && nuevoNum !== num) {
+                    alert("Ese número ya existe en la lista.");
+                    return;
+                }
+
+                // Intercambiar en el set y arreglo
+                registradosSet.delete(num);
+                registradosSet.add(nuevoNum);
+                let idx = poolContactosLimpios.indexOf(num);
+                if (idx !== -1) poolContactosLimpios[idx] = nuevoNum;
+
+                // Actualizar Fila visualmente
+                const fila = document.getElementById(`fila-${num}`);
+                fila.id = `fila-${nuevoNum}`;
+                fila.querySelector('.num-celular').innerText = `+${nuevoNum}`;
+                fila.querySelector('.badge-status').className = "badge-status modificado";
+                fila.querySelector('.badge-status').innerText = "Corregido";
+                // Actualizar triggers de botones
+                fila.querySelector('.btn-edit').setAttribute('onclick', `editarFilaEnVivo('${nuevoNum}')`);
+                fila.querySelector('.btn-del').setAttribute('onclick', `eliminarFilaEnVivo('${nuevoNum}')`);
+                
+                actualizarMetricasDiseno();
+            } else {
+                alert("Formato de número incorrecto.");
+            }
+        }
+
+        function verificarTablaVacia() {
+            const tbody = document.getElementById('tabla-elementos-body');
+            if(tbody.children.length === 0) {
+                tbody.innerHTML = `<tr id="fila-vacia"><td colspan="3" style="text-align: center; color: var(--texto-gris); padding: 15px;">Base de datos vacía. Sube archivos o agrega manualmente.</td></tr>`;
+            }
         }
 
         function updateLecturaProgreso(txt, pct) {
@@ -368,19 +348,18 @@
         }
 
         function ejecutarResumenAlerta() {
-            logger(`Extracción realizada. Únicos: ${registradosSet.size} | Repetidos: ${contadorDuplicados}`);
-            alert(`📈 INFORME TÉCNICO DE EXTRACCIÓN\n\n- Porcentaje de Lectura de Lote: 100%\n- Elementos Únicos Inyectados a la Base: ${registradosSet.size}\n- Elementos Duplicados Descartados: ${contadorDuplicados}\n\nLos números válidos han sido ordenados en la cola.`);
+            alert(`📋 CARGA ASÍNCRONA COMPLETADA\n\n- Estado lectura: 100% Sin bloqueos\n- Únicos listos: ${registradosSet.size}\n- Duplicados ignorados: ${contadorDuplicados}`);
         }
 
         async function lanzarSecuenciaInyeccion() {
-            if(!contactosBaseFinal.length) {
-                alert("La base de datos está vacía. Por favor, selecciona primero un archivo válido.");
+            if(!poolContactosLimpios.length) {
+                alert("No hay registros válidos para disparar. Añade datos primero.");
                 return;
             }
 
-            let total = contactosBaseFinal.length;
+            let total = poolContactosLimpios.length;
             for(let i = 0; i < total; i++) {
-                let celular = contactosBaseFinal[i];
+                let celular = poolContactosLimpios[i];
                 let urlCompleta = `https://wa.me/${celular}?text=${encodeURIComponent(MSG_INVITACION + " " + WHATSAPP_LINK_CAMPANA)}`;
                 
                 document.getElementById('txt-envio-estado').innerText = `Enviando a: +${celular}`;
@@ -400,12 +379,8 @@
                     }
                 }
             }
-            document.getElementById('txt-envio-estado').innerText = "Campaña finalizada de forma segura.";
+            document.getElementById('txt-envio-estado').innerText = "Campaña terminada de forma segura.";
             document.getElementById('barra-envio').style.width = "100%";
-        }
-
-        function logger(m) {
-            document.getElementById('consola-log').innerText = `> ${m}`;
         }
     </script>
 </body>

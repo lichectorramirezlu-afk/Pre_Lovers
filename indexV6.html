@@ -2,82 +2,293 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>NexaEngine V18.0 - Queue & Analytics</title>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nexalovers • Extractor & Manual-Click Invite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.5/dist/tesseract.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
-        :root { --bg: #050505; --rosa: #ff007f; --verde: #00ff66; }
-        body { background: var(--bg); color: #fff; font-family: sans-serif; padding: 20px; }
-        .monitor { background: #111; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid var(--rosa); }
-        .queue-item { font-size: 12px; margin-bottom: 5px; color: #aaa; }
-        .btn-lanzar { background: var(--verde); color: #000; padding: 15px; width: 100%; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        .glow-purple { box-shadow: 0 0 15px rgba(168, 85, 247, 0.2); }
+        .glow-green { box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
     </style>
 </head>
-<body>
+<body class="bg-gray-950 text-gray-100 font-sans min-h-screen p-4 flex flex-col items-center justify-center relative overflow-x-hidden">
 
-    <h1>NexaEngine V18.0 - Live Queue</h1>
-    
-    <div class="monitor">
-        <div id="status-live">Esperando carga...</div>
-        <div id="tiempo-restante">Tiempo estimado: --</div>
+    <div class="absolute top-[-10%] left-[-20%] w-[80%] h-[40%] bg-purple-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="absolute bottom-[-10%] right-[-20%] w-[80%] h-[40%] bg-pink-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+    <div class="w-full max-w-md bg-gray-900/70 border border-purple-500/10 rounded-2xl p-5 shadow-2xl backdrop-blur-md space-y-4 relative z-10 glow-purple">
+        
+        <div class="text-center space-y-0.5">
+            <h1 class="text-xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 uppercase">NexaExtractor Semi-Auto</h1>
+            <p class="text-[9px] font-semibold tracking-widest uppercase text-purple-400 font-mono">Bucle Controlado por Clics • Anti-Bloqueo</p>
+        </div>
+
+        <div class="space-y-1">
+            <span class="text-[10px] font-mono text-purple-400 font-bold block uppercase tracking-wider">📥 Inyectar Capturas o Archivos</span>
+            <div class="border border-dashed border-purple-500/20 hover:border-purple-500/50 rounded-xl p-3 text-center cursor-pointer relative bg-gray-950 transition-colors group">
+                <input type="file" id="fileInyector" accept=".txt,.csv,.xlsx,.xls,.zip,image/*" multiple class="absolute inset-0 opacity-0 cursor-pointer" onchange="manejarInyeccionArchivos(this)">
+                <p id="lblStatusArchivo" class="text-xs text-gray-400 font-mono">Selecciona tus capturas o listas sucias</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-center">
+            <div class="bg-gray-950/80 p-2.5 border border-gray-850 rounded-xl relative">
+                <span class="text-[9px] text-gray-500 uppercase font-black block tracking-wider">Base Local Guardada</span>
+                <span id="txtContadorUnicos" class="text-lg font-black font-mono text-emerald-400">0</span>
+                <button onclick="limpiarBaseDatosLocal()" class="absolute top-1 right-2 text-[8px] text-red-500 hover:underline font-mono">Borrar</button>
+            </div>
+            <div class="bg-gray-950/80 p-2.5 border border-purple-500/20 rounded-xl">
+                <span class="text-[9px] text-purple-400 uppercase font-black block tracking-wider">Invitaciones Hechas</span>
+                <span id="txtContadorEnviados" class="text-lg font-black font-mono text-pink-400">0</span>
+            </div>
+        </div>
+
+        <div id="bloqueDisparador" class="bg-gray-950 p-4 border border-emerald-500/20 rounded-xl space-y-3 text-center hidden">
+            <div class="space-y-0.5">
+                <span class="text-[9px] text-emerald-400 uppercase font-mono font-bold tracking-widest block">Siguiente Envío Listo</span>
+                <h3 id="txtNumeroSiguiente" class="text-xl font-black font-mono text-white tracking-wider">+52 ----------</h3>
+            </div>
+            
+            <button onclick="ejecutarAperturaWhatsAppApp()" id="btnActionClick" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-black text-sm uppercase tracking-wider py-3.5 rounded-xl transition-all shadow-lg text-center block glow-green animate-pulse">
+                🟢 ENVIAR INVITACIÓN (ABRIR APP)
+            </button>
+            
+            <p class="text-[9px] text-gray-500 font-mono">Al hacer clic se abrirá tu app de WhatsApp. El sistema avanzará automáticamente al siguiente registro.</p>
+        </div>
+
+        <div class="space-y-1">
+            <span class="text-[10px] font-mono text-gray-400 font-bold block uppercase tracking-wider">🖥️ Historial de Flujo Interno</span>
+            <div id="consolaAuditoriaLive" class="w-full h-24 bg-gray-950 border border-gray-850 rounded-xl p-2 font-mono text-[10px] overflow-y-auto space-y-0.5 text-gray-600">
+                <p class="text-center pt-6 text-gray-700">Base lista. Inyecta capturas o archivos...</p>
+            </div>
+        </div>
+
+        <div class="flex gap-2 pt-1">
+            <button onclick="sincronizarBaseGeneralMasivo()" id="btnGuardarNube" disabled class="flex-1 bg-gray-950 border border-purple-500/30 text-purple-400 font-bold text-[10px] uppercase tracking-wider py-2 rounded-xl transition-all">
+                ☁️ Sincronizar Firebase
+            </button>
+            <button onclick="exportarListaLimpiaCSV()" id="btnExportar" disabled class="bg-gray-850 disabled:bg-gray-900 disabled:text-gray-700 text-gray-300 text-[10px] font-bold px-3 rounded-xl transition-all">
+                Exportar CSV
+            </button>
+        </div>
     </div>
 
-    <input type="file" id="input-masivo" multiple accept="*" style="display: none;">
-    <div class="btn-lanzar" onclick="document.getElementById('input-masivo').click()">📁 SUBIR ARCHIVOS A LA FILA</div>
-
-    <div id="queue-list" style="margin-top:20px;"></div>
+    <canvas id="canvasPreprocesamiento" class="hidden"></canvas>
 
     <script>
-        let fila = [];
-        let contactos = new Set();
+        const firebaseConfig = { 
+            apiKey: "AIzaSyAcMf1zfXLacvsNIz_QWS3-Yn23q0oPbLU", authDomain: "nexa-pilot.firebaseapp.com",
+            projectId: "nexa-pilot", storageBucket: "nexa-pilot.firebasestorage.app",
+            messagingSenderId: "218347360257", appId: "1:218347360257:web:8dd161377d83e017a47000"
+        };
+        firebase.initializeApp(firebaseConfig); const db = firebase.firestore();
 
-        document.getElementById('input-masivo').addEventListener('change', (e) => {
-            const files = Array.from(e.target.files);
-            // Agrupar en fila
-            files.forEach(f => fila.push(f));
-            updateQueueUI();
+        const LINK_COMUNIDAD = "https://chat.whatsapp.com/BYhNkfAcToeAeSiDY5Vp4F";
+        const MENSAJE_PLANTILLA = `¡Hola! Te invito a formar parte de nuestra comunidad oficial de Nexalovers. Puedes unirte directamente a través de este enlace: ${LINK_COMUNIDAD}`;
+
+        let setNumerosTransformados = new Set();
+        let listaEnviados = JSON.parse(localStorage.getItem('nexa_enviados')) || [];
+        let colaPendientes = [];
+        let numeroActualFlujo = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const guardados = localStorage.getItem('nexa_base_local');
+            if (guardados) {
+                const arr = JSON.parse(guardados);
+                arr.forEach(n => setNumerosTransformados.add(n));
+                inyectarLogSistema(`Base recuperada localmente con ${setNumerosTransformados.size} registros.`);
+                prepararSiguienteContactoCola();
+                actualizarEstadisticasPantalla();
+            }
         });
 
-        function updateQueueUI() {
-            const list = document.getElementById('queue-list');
-            list.innerHTML = "<h3>Archivos en fila:</h3>" + fila.map(f => `<div class="queue-item">⏳ ${f.name}</div>`).join('');
+        function guardarEnLocalStorage() {
+            localStorage.setItem('nexa_base_local', JSON.stringify(Array.from(setNumerosTransformados)));
+            localStorage.setItem('nexa_enviados', JSON.stringify(listaEnviados));
         }
 
-        async function lanzarTrabajo() {
-            const startTime = Date.now();
-            for(let i = 0; i < fila.length; i++) {
-                let file = fila[i];
-                
-                // Tiempo estimado simple basado en velocidad de proceso
-                let tiempoPorArchivo = 3000; 
-                let rest = ((fila.length - i) * tiempoPorArchivo) / 1000;
-                
-                document.getElementById('status-live').innerText = `Procesando: ${file.name}`;
-                document.getElementById('tiempo-restante').innerText = `Tiempo estimado restante: ${Math.round(rest)}s`;
+        function actualizarEstadisticasPantalla() {
+            document.getElementById('txtContadorUnicos').innerText = setNumerosTransformados.size;
+            document.getElementById('txtContadorEnviados').innerText = listaEnviados.length;
+            
+            const tieneDatos = setNumerosTransformados.size > 0;
+            document.getElementById('btnGuardarNube').disabled = !tieneDatos;
+            document.getElementById('btnExportar').disabled = !tieneDatos;
+        }
 
-                try {
-                    let text = "";
-                    if(file.type.startsWith('image/')) {
-                        const worker = await Tesseract.createWorker('spa');
-                        const res = await worker.recognize(file);
-                        text = res.data.text;
-                        await worker.terminate();
-                    } else {
-                        text = await file.text();
-                    }
-                    
-                    const nums = text.match(/\d{10,15}/g) || [];
-                    nums.forEach(n => {
-                        let c = n.replace(/\D/g, '');
-                        if(c.length === 10) c = '52' + c;
-                        if(c.startsWith('52')) contactos.add(c);
-                    });
-                } catch(e) { console.error(e); }
+        function inyectarLogSistema(texto, color = "text-purple-400") {
+            const monitor = document.getElementById('consolaAuditoriaLive');
+            monitor.innerHTML = `<div class="${color}">🤖 ${texto}</div>` + monitor.innerHTML;
+        }
+
+        function prepararSiguienteContactoCola() {
+            colaPendientes = Array.from(setNumerosTransformados).filter(n => !listaEnviados.includes(n));
+            
+            if (colaPendientes.length > 0) {
+                numeroActualFlujo = colaPendientes[0];
+                document.getElementById('txtNumeroSiguiente').innerText = `+52 ${numeroActualFlujo}`;
+                document.getElementById('bloqueDisparador').classList.remove('hidden');
+            } else {
+                numeroActualFlujo = null;
+                document.getElementById('bloqueDisparador').classList.add('hidden');
+                if (setNumerosTransformados.size > 0) {
+                    inyectarLogSistema("🏁 ¡Felicidades! Se han enviado invitaciones a toda la lista actual.", "text-teal-400");
+                }
             }
-            document.getElementById('status-live').innerText = "✅ Trabajo terminado.";
-            alert("Proceso completado. Total de contactos únicos: " + contactos.size);
+        }
+
+        // ACCIÓN CLIC MANUAL: Abre la app nativa y actualiza el estado de inmediato sin congelarse
+        function ejecutarAperturaWhatsAppApp() {
+            if (!numeroActualFlujo) return;
+
+            // Enlace universal compatible con app móvil y desktop instalada
+            const urlDisparoApp = `https://api.whatsapp.com/send?phone=52${numeroActualFlujo}&text=${encodeURIComponent(MENSAJE_PLANTILLA)}`;
+            
+            // Abrimos la pestaña (al ser detonada por un clic manual del usuario, el navegador JAMÁS la bloquea)
+            window.open(urlDisparoApp, '_blank');
+
+            // Registrar éxito en el historial y mover la cola
+            listaEnviados.push(numeroActualFlujo);
+            inyectarLogSistema(`Desplegado chat app para: +52 ${numeroActualFlujo}`, "text-emerald-400");
+            
+            guardarEnLocalStorage();
+            actualizarEstadisticasPantalla();
+            prepararSiguienteContactoCola();
+        }
+
+        function limpiarBaseDatosLocal() {
+            if (confirm("¿Vaciar base local de esta pantalla?")) {
+                localStorage.removeItem('nexa_base_local');
+                localStorage.removeItem('nexa_enviados');
+                setNumerosTransformados.clear();
+                listaEnviados = [];
+                colaPendientes = [];
+                numeroActualFlujo = null;
+                actualizarEstadisticasPantalla();
+                prepararSiguienteContactoCola();
+                document.getElementById('consolaAuditoriaLive').innerHTML = '<p class="text-center pt-6 text-gray-700">Base borrada.</p>';
+            }
+        }
+
+        // PARSER CORE EN VIVO
+        function procesarYFiltrarTextoInyectado(textoSucio) {
+            let planoConSaltos = textoSucio.replace(/[^\d\n\r]/g, ' ');
+            let bloquesLineas = planoConSaltos.split(/[\n\r]+/);
+
+            bloquesLineas.forEach(linea => {
+                let cadenasEnLinea = linea.match(/\d{10,13}/g) || [];
+                cadenasEnLinea.forEach(num => {
+                    let transformado = num;
+                    if (transformado.startsWith('521') && transformado.length > 10) transformado = transformado.substring(3);
+                    else if (transformado.startsWith('52') && transformado.length > 10) transformado = transformado.substring(2);
+                    
+                    if (transformado.length === 10) {
+                        setNumerosTransformados.add(transformado);
+                    }
+                });
+            });
+
+            guardarEnLocalStorage();
+            actualizarEstadisticasPantalla();
+            prepararSiguienteContactoCola();
+        }
+
+        // COLA ASÍNCRONA MULTI-ARCHIVO
+        async function manejarInyeccionArchivos(input) {
+            if (!input.files || input.files.length === 0) return;
+            const archivos = Array.from(input.files);
+            
+            inyectarLogSistema(`Analizando lote entrante de ${archivos.length} archivos...`);
+            
+            for (let i = 0; i < archivos.length; i++) {
+                await procesarArchivoIndividual(archivos[i]);
+            }
+            inyectarLogSistema(`Lote procesado. Base local actual: ${setNumerosTransformados.size} números.`);
+        }
+
+        function procesarArchivoIndividual(archivo) {
+            return new Promise((resolve) => {
+                const ext = archivo.name.toLowerCase();
+                if (ext.endsWith('.txt') || ext.endsWith('.csv')) {
+                    const lector = new FileReader();
+                    lector.onload = e => { procesarYFiltrarTextoInyectado(e.target.result); resolve(); };
+                    lector.readAsText(archivo);
+                } else if (ext.endsWith('.xlsx') || ext.endsWith('.xls')) {
+                    const lector = new FileReader();
+                    lector.onload = e => {
+                        const wb = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+                        let acumulado = "";
+                        wb.SheetNames.forEach(sheet => { acumulado += XLSX.utils.sheet_to_txt(wb.Sheets[sheet]) + "\n"; });
+                        procesarYFiltrarTextoInyectado(acumulado); resolve();
+                    };
+                    lector.readAsArrayBuffer(archivo);
+                } else if (archivo.type.startsWith('image/')) {
+                    const img = new Image();
+                    img.src = URL.createObjectURL(archivo);
+                    img.onload = () => {
+                        const canvas = document.getElementById('canvasPreprocesamiento');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = img.width; canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0);
+                        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const d = imgData.data;
+                        for (let i = 0; i < d.length; i += 4) {
+                            let gris = 0.34 * d[i] + 0.5 * d[i+1] + 0.16 * d[i+2];
+                            let v = (gris > 125) ? 255 : 0;
+                            d[i] = d[i+1] = d[i+2] = v;
+                        }
+                        ctx.putImageData(imgData, 0, 0);
+                        Tesseract.recognize(canvas.toDataURL(), 'spa').then(({ data: { text } }) => {
+                            procesarYFiltrarTextoInyectado(text); resolve();
+                        }).catch(() => resolve());
+                    };
+                } else {
+                    resolve();
+                }
+            });
+        }
+
+        async function sincronizarBaseGeneralMasivo() {
+            inyectarLogSistema("Iniciando respaldo en la nube de Firebase...");
+            const arrayNumeros = Array.from(setNumerosTransformados);
+            const tamañoLote = 450;
+            let indexActual = 0;
+
+            while (indexActual < arrayNumeros.length) {
+                const batch = db.batch();
+                const limiteLote = Math.min(indexActual + tamañoLote, arrayNumeros.length);
+
+                for (let i = indexActual; i < limiteLote; i++) {
+                    const tel = arrayNumeros[i];
+                    const docRef = db.collection('base_general_contactos').doc(`+52${tel}`);
+                    batch.set(docRef, {
+                        telefono: `+52${tel}`,
+                        origen: "SemiAutoInvite",
+                        fechaInyeccion: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                }
+
+                await batch.commit();
+                indexActual = limiteLote;
+            }
+            inyectarLogSistema("🔥 Respaldo en la nube sincronizado.", "text-emerald-400");
+            alert("Sincronización completa.");
+        }
+
+        function exportarListaLimpiaCSV() {
+            let csv = "Telefono\n" + Array.from(setNumerosTransformados).map(n => `+52${n}`).join("\n");
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.setAttribute("download", "base_semi_auto.csv");
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
         }
     </script>
-
-    <button class="btn-lanzar" style="margin-top:10px; background: var(--rosa); color:white;" onclick="lanzarTrabajo()">🚀 INICIAR PROCESAMIENTO</button>
 </body>
 </html>
